@@ -47,14 +47,18 @@
 					return codes[code];
 			}
 			$(function() {
-				var url = 'http://worldcup.sfg.io/matches?by_date=ASC';
 				$( "#lstpartidos" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
-
+				refresh();
+		
+			});	
+			
+			function refresh(){
+				var url = 'http://worldcup.sfg.io/matches?by_date=ASC';
 				$.getJSON(url, function(data) {
 					partidos = data;
 					cargarPartidos();
-				});			
-			});	
+				});				
+			}
 			
 			function cargarPartidos(){
 				if(partidos!= ''){
@@ -102,7 +106,7 @@
 					<div data-role="navbar">
 						<ul>
 							<li><a href="#inicio" data-icon="home">Inicio</a></li>
-							<li><a href="#partidos" data-icon="calendar">Partidos</a></li>
+							<li><a href="#partidos" data-icon="calendar" >Partidos</a></li>
 							<li><a href="#partidos" data-icon="star">Llaves</a></li>
 							<li><a href="#partidos" data-icon="bullets">Posiciones</a></li>
 						</ul>
@@ -125,7 +129,7 @@
 					<div data-role="navbar">
 						<ul>
 							<li><a href="#inicio" data-icon="home" >Inicio</a></li>
-							<li><a href="#partidos" data-icon="calendar">Partidos</a></li>
+							<li><a href="#partidos" data-icon="calendar" onclick="refresh()">Partidos</a></li>
 							<li><a href="#partidos" data-icon="star">Llaves</a></li>
 							<li><a href="#partidos" data-icon="bullets">Posiciones</a></li>
 						</ul>
