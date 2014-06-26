@@ -1,15 +1,92 @@
 <!DOCTYPE html>
 <html>
     <head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">	
         <title>Mundiales</title>
 		<link rel="stylesheet" href="css/jquery.mobile-1.4.2.min.css" />
 		<link rel="stylesheet" href="css/flags.css" />
 		<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
 		<script type="text/javascript" src="js/jquery.mobile-1.4.2.min.js"></script>		
 		<script type="text/javascript">
+			var partidos = '';
+			function flag(code){
+					var codes = {};
+					codes['ALG'] = 'dz';
+					codes['ARG'] = 'ar';
+					codes['AUS'] = 'au';
+					codes['BEL'] = 'be';
+					codes['BIH'] = 'ba';
+					codes['BRA'] = 'br';
+					codes['CHI'] = 'cl';
+					codes['CIV'] = 'ci';
+					codes['CMR'] = 'cm';
+					codes['COL'] = 'co';
+					codes['CRC'] = 'cr';
+					codes['CRO'] = 'hr';
+					codes['ECU'] = 'ec';
+					codes['ENG'] = 'england';
+					codes['ESP'] = 'es';
+					codes['FRA'] = 'fr';
+					codes['GER'] = 'de';
+					codes['GHA'] = 'gh';
+					codes['GRE'] = 'gr';
+					codes['HON'] = 'hn';
+					codes['IRN'] = 'ir';
+					codes['ITA'] = 'it';
+					codes['JPN'] = 'jp';
+					codes['KOR'] = 'kr';
+					codes['MEX'] = 'mx';
+					codes['NED'] = 'nl';
+					codes['NGA'] = 'ng';
+					codes['POR'] = 'pt';
+					codes['RUS'] = 'ru';
+					codes['SUI'] = 'ch';
+					codes['URU'] = 'uy';
+					codes['USA'] = 'us';
+					return codes[code];
+			}
 			$(function() {
-				$( "#lstpartidos" ).append($('<li> Argentina - Suiza</li>'));
-			});		
+				var url = 'http://worldcup.sfg.io/matches?by_date=ASC';
+				$( "#lstpartidos" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
+
+				$.getJSON(url, function(data) {
+					partidos = data;
+					cargarPartidos();
+				});			
+			});	
+			
+			function cargarPartidos(){
+				if(partidos!= ''){
+					$( "#lstpartidos" ).html('');
+					var ultimaFecha = '';
+					$.each(partidos, function(nro, partido) {
+						var datetime = partido.datetime.split('T');
+						var dia = datetime[0];
+						var horamin = datetime[1].split('.')[0].split(':');
+						var hora = horamin[0] + ':' + horamin[1];
+						if(dia != ultimaFecha){
+							$( "#lstpartidos" ).append($('<li data-role="list-divider" >'+dia+'</li>'));
+							ultimaFecha = dia;
+						}
+						txt = '<small>'+hora+'</small>&nbsp;&nbsp;';
+						txt += '<img src="img/blank.gif" class="flag flag-'+flag(partido.home_team.code)+'"> ';		
+						txt += partido.home_team.code; //country;
+						txt += (partido.status == 'completed')? (' <big>' + partido.home_team.goals + '</big> ') : '-';
+						txt += ' : ';
+						txt += (partido.status == 'completed')? (' <big>' + partido.away_team.goals + '</big> ') : '-';
+						txt += partido.away_team.code; //.country;
+						txt += ' <img src="img/blank.gif" class="flag flag-'+flag(partido.away_team.code)+'">';	
+						
+						$( "#lstpartidos" ).append($('<li><div>'+txt+'</div></li>'));
+						$('#lstpartidos').trigger('create');    
+						$('#lstpartidos').listview('refresh');
+					});	
+					
+					partidos= '';
+				}
+			}
+			
 		</script>		
     </head>
     <body>
@@ -19,9 +96,18 @@
 			</div>
 			
 			<ul data-role="listview" >
-				<li><a href="#partidos"> <img src="img/blank.gif"  class="flag flag-br ui-li-icon"/> Brasil 2014</a></li>
+				<li><a href="#partidos" onclick="cargarPartidos()"> <img src="img/blank.gif"  class="flag flag-br ui-li-icon"/> Brasil 2014</a></li>
 			</ul>
-
+			<div data-role="footer" data-position="fixed" >
+					<div data-role="navbar">
+						<ul>
+							<li><a href="#inicio" data-icon="home">Inicio</a></li>
+							<li><a href="#partidos" data-icon="calendar">Partidos</a></li>
+							<li><a href="#partidos" data-icon="star">Llaves</a></li>
+							<li><a href="#partidos" data-icon="bullets">Posiciones</a></li>
+						</ul>
+					</div><!-- /navbar -->
+			</div><!-- /footer -->
 		</div>
 
 
@@ -32,17 +118,16 @@
 				<h1>Partidos</h1>
 			</div>
 
-			<ul id="lstpartidos" data-role="listview" >
-
+			<ul id="lstpartidos" data-role="listview" data-filter="true">
 			</ul>
 			
 			<div data-role="footer" data-position="fixed" >
 					<div data-role="navbar">
 						<ul>
-							<li><a href="#inicio" data-icon="home">Inicio</a></li>
-							<li><a href="#partidos" data-icon="grid"  class="ui-btn-active">Partidos</a></li>
-							<li><a href="#partidos" data-icon="gear">Llaves</a></li>
-							<li><a href="#partidos" data-icon="gear">Posiciones</a></li>
+							<li><a href="#inicio" data-icon="home" >Inicio</a></li>
+							<li><a href="#partidos" data-icon="calendar">Partidos</a></li>
+							<li><a href="#partidos" data-icon="star">Llaves</a></li>
+							<li><a href="#partidos" data-icon="bullets">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
 			</div><!-- /footer -->
