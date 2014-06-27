@@ -2,8 +2,12 @@
 <html>
     <head>
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">	
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<title>Mundiales</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="HandheldFriendly" content="true">
+		
 		<link rel="stylesheet" href="css/jquery.mobile-1.4.2.min.css" />
 		<link rel="stylesheet" href="css/mundiales.min.css" />
 		<link rel="stylesheet" href="css/flags.css" />
@@ -12,6 +16,7 @@
 		<script type="text/javascript" src="js/jquery.mobile-1.4.2.min.js"></script>		
 		<script type="text/javascript">
 			var partidos = '';
+			var apuestas = '';
 			function flag(code){
 					var codes = {};
 					codes['ALG'] = 'dz';
@@ -55,11 +60,17 @@
 			});	
 			
 			function refresh(){
-				var url = 'http://worldcup.sfg.io/matches?by_date=ASC';
-				$.getJSON(url, function(data) {
+				var urlApuestas = 'http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6';
+				$.getJSON(urlApuestas, function(data) {
+					apuestas = data;
+					alert(apuestas[5].nombre)
+				});	
+
+				var urlPartidos = 'http://worldcup.sfg.io/matches?by_date=ASC';
+				$.getJSON(urlPartidos, function(data) {
 					partidos = data;
 					cargarPartidos();
-				});				
+				});	
 			}
 			
 			function cargarPartidos(){
