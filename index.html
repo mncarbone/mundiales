@@ -185,17 +185,20 @@
 				posiciones.sort(function(a,b){return (b.puntos-a.puntos)? (b.puntos-a.puntos):(a.nombre.toUpperCase().localeCompare(b.nombre.toUpperCase()))});
 				return posiciones;
 			}
-			var totalesApuestas = [];
+			var totalesApuestas = new Array(64);
 			
 			function cantParticipantesQuePusieronEnPartido(resultado, idPartido){
 				var tot = 0;
-				
-				$.each(participantes, function(nro, participante) {
-					if(participantePusoEnPartido(participante.id, resultado, idPartido)){
-						tot++;
-					}
-				});
-				
+				if(totalesApuestas[idPartido][resultado]){
+					return totalesApuestas[idPartido][resultado];
+				else {
+					$.each(participantes, function(nro, participante) {
+						if(participantePusoEnPartido(participante.id, resultado, idPartido)){
+							tot++;
+						}
+					});
+				}
+				totalesApuestas[idPartido][resultado] = tot;
 				return tot;
 			}
 			
