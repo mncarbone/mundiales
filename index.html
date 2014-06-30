@@ -16,8 +16,63 @@
 		<script type="text/javascript" src="js/jquery.mobile-1.4.2.min.js"></script>		
 		<script type="text/javascript">
 			var partidos = '';
-			var apuestas = '';
-			function flag(code){
+			var participantes = '';
+			
+			function guardar(variable, dato){
+				if(localStorage && localStorage.setItem){
+					localStorage.setItem(variable, dato);
+				}
+			}
+
+			function leer(variable, defval){
+				if(localStorage && localStorage.getItem){
+					return localStorage.getItem(variable);
+				}
+				return defval;
+			}
+			
+			function banderaPorNombre(nombre){
+				var nombres = {};
+				nombres['ARGENTINA'] = 'ar';
+				nombres['BOLIVIA'] 	= 'bo';
+				nombres['BRASIL']	= 'br';
+				nombres['CHILE'] 	= 'cl';
+				nombres['COLOMBIA'] 	= 'co';
+				nombres['COSTA RICA']= 'cr';
+				nombres['ECUADOR'] 	= 'ec';
+				nombres['MEXICO'] 	= 'mx';
+				nombres['PARAGUAY'] 	= 'py';
+				nombres['PERU'] 		= 'pe';
+				nombres['URUGUAY'] 	= 'uy';
+				nombres['VENEZUELA'] = 've';
+				nombres['CROACIA'] 	= 'hr';
+				nombres['CAMERUN'] 	= 'cm';
+				nombres['ESPAÑA'] 	= 'es';
+				nombres['HOLANDA'] 	= 'nl';
+				nombres['AUSTRALIA'] = 'au';
+				nombres['GRECIA'] 	= 'gr';
+				nombres['INGLATERRA']= 'england';
+				nombres['COSTA DE MARFIL'] = 'ci';
+				nombres['ITALIA'] 	= 'it';
+				nombres['JAPON'] 	= 'jp';
+				nombres['FRANCIA'] 	= 'fr';
+				nombres['SUIZA'] 	= 'ch';
+				nombres['HONDURAS'] 	= 'hn';
+				nombres['BOSNIA-HERZEGOVINA'] = 'ba';
+				nombres['ALEMANIA'] 	= 'de';
+				nombres['PORTUGAL'] 	= 'pt';
+				nombres['IRAN'] 		= 'ir';
+				nombres['NIGERIA'] 	= 'ng';
+				nombres['GHANA'] 	= 'gh';
+				nombres['ESTADOS UNIDOS'] = 'us';
+				nombres['BELGICA'] 	= 'be';
+				nombres['ARGELIA'] 	= 'dz';
+				nombres['RUSIA'] 	= 'ru';
+				nombres['REPUBLICA DE COREA'] = 'kr';	
+				return nombres[nombre];
+			}
+			
+			function banderaPorCodigo(code){
 					var codes = {};
 					codes['ALG'] = 'dz';
 					codes['ARG'] = 'ar';
@@ -53,98 +108,321 @@
 					codes['USA'] = 'us';
 					return codes[code];
 			}
+			
 			$(function() {
 				$( "#lstpartidos" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
+				$( "#lstpartidos_grupos" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
+				$( "#lstposiciones" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
 				refresh();
 		
 			});	
 			
+	
 			function refresh(){
-				var urlApuestas = 'http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6';
-				$.getJSON(urlApuestas, function(data) {
-					apuestas = data;
-					alert(apuestas[5].nombre)
-				});	
+				$.ajaxSetup({ cache: false });
+				
+				if(participantes == ''){
+					var urlApuestas = 'http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6';
+					$.getJSON(urlApuestas, function(data) {
+						participantes = data;
+						cargarPosiciones();
+						cargarPartidos();
+					});
+				}
 
 				var urlPartidos = 'http://worldcup.sfg.io/matches?by_date=ASC';
 				$.getJSON(urlPartidos, function(data) {
 					partidos = data;
 					cargarPartidos();
+					cargarPosiciones();
+				})
+				.fail(function( jqxhr, textStatus, error ) {
+					var err = textStatus + ", " + error;
+					console.log( "Request Failed: " + err );
 				});	
+			}
+			/* */
+			
+			function partidoEntre(l,v){
+				var al = banderaPorNombre(l);
+				var av = banderaPorNombre(v);			
+				var res = {};
+				$.each(partidos, function(nro, partido) {
+					var pl = banderaPorCodigo(partido.home_team.code);
+					var pv = banderaPorCodigo(partido.away_team.code);
+					if(pl == al && pv == av){
+						res = partido;
+					}
+				});
+				return res;
+			}
+			
+			function sumarPuntos(pgl, pgv, agl, agv){
+					var resultadoPartido = (pgl > pgv)? 'L' : ((pgl < pgv)? 'V' : 'E');
+					var resultadoApuesta = (agl > agv)? 'L' : ((agl < agv)? 'V' : 'E');
+					var aciertoResultado = (resultadoPartido == resultadoApuesta);
+					var aciertoGoles = (agl == pgl && agv == pgv);
+					return (aciertoGoles)? 3 : ((aciertoResultado)? 1 : 0) ;				
+			}
+			
+			function calcularPuntos(apuestas, alertar){
+				var puntos = 0;
+				$.each(apuestas, function(nro, apuesta) {
+					var partido = partidoEntre(apuesta.l, apuesta.v);
+					if(partido.home_team && partido.status != "future"){
+						puntos += sumarPuntos(partido.home_team.goals, partido.away_team.goals, apuesta.gl, apuesta.gv);
+					}
+				});
+				return puntos;
+			}
+			
+			function participantesPorPuntos(){
+				var posiciones = [];
+				$.each(participantes, function(nro, participante) {
+					participante.puntos = calcularPuntos(participante.apuestas, (participante.nombre=='CARBONE, MARTIN'));
+					posiciones.push(participante);
+				});
+				posiciones.sort(function(a,b){return (b.puntos-a.puntos)? (b.puntos-a.puntos):(a.nombre.toUpperCase().localeCompare(b.nombre.toUpperCase()))});
+				return posiciones;
+			}
+			var totalesApuestas = [];
+			
+			function cantParticipantesQuePusieronEnPartido(resultado, idPartido){
+				var tot = 0;
+				
+				$.each(participantes, function(nro, participante) {
+					if(participantePusoEnPartido(participante.id, resultado, idPartido)){
+						tot++;
+					}
+				});
+				
+				return tot;
+			}
+			
+			function participantePusoEnPartido(idParticipante, resultado, idPartido){
+				var participante = getParticipante(idParticipante);
+				var apuesta = getApuestaDeUnPartido(participante, idPartido)
+				var resultadoApuesta = (apuesta.gl > apuesta.gv)? 'L' : ((apuesta.gl < apuesta.gv)? 'V' : 'E');
+				return (resultadoApuesta == resultado);
+			}
+			
+			function getApuestaDeUnPartido(participante, idPartido){
+				var seleccionada = {}
+				$.each(participante.apuestas, function(nro,apuesta){
+					var partido = partidoEntre(apuesta.l, apuesta.v)
+					if(idPartido == partido.match_number){
+						seleccionada = apuesta;
+					}
+				})
+				return seleccionada;
+			}
+			
+			function cargarPosiciones(quePuso, enPartido){
+				var quePuso = (arguments.length > 0)? ((quePuso > 0)? 'L' : ((quePuso < 0)?'V':'E')) : '';
+				var enPartido = (arguments.length > 0)? enPartido : '';
+				var ver = true;
+				if(partidos!= '' && participantes!= ''){
+					$( "#lstposiciones" ).html('');
+					var posiciones = participantesPorPuntos();
+					$.each(posiciones, function(nro, participante) {
+						if(quePuso!='' && enPartido != ''){
+							ver = participantePusoEnPartido(participante.id, quePuso, enPartido);
+						}
+						if(ver){
+							var txt = '<a href="#apuestas" onclick="cargarApuestas('+participante.id+')">'+participante.nombre+'</a>';
+							txt += '<span class="ui-li-count">'+participante.puntos+'</span>';
+							$("#lstposiciones").append($('<li><span>'+txt+'</span></li>'));
+						}
+					});
+					$('#lstposiciones').trigger('create');
+					$('#lstposiciones').listview('refresh');
+				}
+			}
+			
+			function getPartido(idPartido){
+				var seleccionado = {}
+				$.each(partidos, function(nro, partido) {
+					if(partido.match_number == idPartido){
+						seleccionado = partido;
+					}
+				})
+				return seleccionado;
+			}
+						
+			function getParticipante(idParticipante){
+				var seleccionado = {}
+				$.each(participantes, function(nro, participante) {
+					if(participante.id == idParticipante){
+						seleccionado = participante;
+					}
+				})
+				return seleccionado;
+			}
+			
+			function cargarApuestas(idParticipante){
+				var participante = getParticipante(idParticipante);
+				$("#lstapuestas").html('');
+				$("#encabezado_apuestas").html(participante.nombre);
+				$("#lstapuestas").append($('<li data-role="list-divider" >Resultado<span class="ui-li-count" style="color:gray;">Apuesta &rarr; Puntos</span></li>'));				
+				var total = 0;
+				$.each(participante.apuestas, function(nro, apuesta) {
+					var partido = partidoEntre(apuesta.l, apuesta.v);
+					var txt = resultadoHTML(partido);
+					txt += '<span class="ui-li-count">' + apuesta.gl+ ' - '+ apuesta.gv;
+					puntos = (partido.status == "future")? 0 : sumarPuntos(partido.home_team.goals, partido.away_team.goals, apuesta.gl, apuesta.gv)
+					txt += ' &rarr; <big>'+puntos+'</big></span>';
+					$('#lstapuestas').append($('<li><span>'+txt+'</span></li>'));
+					total += puntos;
+				});
+				$("#lstapuestas").append($('<li><b>Total</b><span class="ui-li-count"><big>'+total+'</big> puntos</span></li>'));
+				
+				$('#lstapuestas').trigger('create');
+				$('#lstapuestas').listview('refresh');
 			}
 			
 			function cargarPartidos(){
-				if(partidos!= ''){
+				if(partidos!= '' && participantes!= ''){
+					
 					$( "#lstpartidos" ).html('');
+					if(!partidosCargados){
+						$( "#lstpartidos_grupos" ).html('');
+					}
 					var ultimaFecha = '';
 					$.each(partidos, function(nro, partido) {
-						var datetime = partido.datetime.split('T');
-						var dia = datetime[0];
-						var horamin = datetime[1].split('.')[0].split(':');
-						var hora = horamin[0] + ':' + horamin[1];
-						if(dia != ultimaFecha){
-							$( "#lstpartidos" ).append($('<li data-role="list-divider" >'+dia+'</li>'));
-							ultimaFecha = dia;
-						}
-						txt = '<small>'+hora+'</small>&nbsp;&nbsp;';
-						txt += '<img src="img/blank.gif" class="flag flag-'+flag(partido.home_team.code)+'"> ';		
-						txt += partido.home_team.code; //country;
-						txt += (partido.status == 'completed')? (' <big>' + partido.home_team.goals + '</big> ') : '-';
-						txt += ' : ';
-						txt += (partido.status == 'completed')? (' <big>' + partido.away_team.goals + '</big> ') : '-';
-						txt += partido.away_team.code; //.country;
-						txt += ' <img src="img/blank.gif" class="flag flag-'+flag(partido.away_team.code)+'">';	
-						
-						$( "#lstpartidos" ).append($('<li><div>'+txt+'</div></li>'));
-						$('#lstpartidos').trigger('create');    
-						$('#lstpartidos').listview('refresh');
+						var partido2daFase = (partido.match_number > 48);
+						if(!partidosCargados || partido2daFase){
+							var lista = (partido2daFase)? '#lstpartidos' : '#lstpartidos_grupos';
+							var datetime = partido.datetime.split('T');
+							var dia = datetime[0];
+							var horamin = datetime[1].split('.')[0].split(':');
+							var hora = horamin[0] + ':' + horamin[1];
+							if(dia != ultimaFecha){
+								var txtLEV = (partido2daFase)? '<span class="ui-li-count" style="color:gray;"> L | E | V </span>' : '';
+								$( lista ).append($('<li data-role="list-divider" >'+dia+txtLEV+'</li>'));
+								ultimaFecha = dia;
+							}
+							var txt = '<small>'+hora+'</small>&nbsp;&nbsp;';
+							txt += resultadoHTML(partido);
+							/* */
+							if(partido2daFase){
+								var tl = cantParticipantesQuePusieronEnPartido('L',partido.match_number);
+								var te = cantParticipantesQuePusieronEnPartido('E',partido.match_number);
+								var tv = cantParticipantesQuePusieronEnPartido('V',partido.match_number);
+
+								txtApuestas = '<a href="#posiciones" onclick="cargarPosiciones(1,'+partido.match_number+')">'+tl+'</a> | ';
+								txtApuestas += '<a href="#posiciones" onclick="cargarPosiciones(0,'+partido.match_number+')">'+te+'</a> | ';
+								txtApuestas += '<a href="#posiciones" onclick="cargarPosiciones(-1,'+partido.match_number+')">'+tv+'</a>';
+								txt += '<span class="ui-li-count">'+txtApuestas+'</span>';
+							}
+							/* */
+							$(lista).append($('<li><div>'+txt+'</div></li>'));
+						}						
 					});	
+					if(!partidosCargados){
+						$('#lstpartidos_grupos').trigger('create'); 
+						$('#lstpartidos_grupos').trigger('refresh'); 
+					}
+					$('#lstpartidos').trigger('create'); 
+					$('#lstpartidos').listview('refresh');
 					
-					partidos= '';
+					partidosCargados= true;
 				}
 			}
+			
+			function resultadoHTML(partido){
+				var txt = '';
+				txt += '<img src="img/blank.gif" class="flag flag-'+banderaPorCodigo(partido.home_team.code)+'"> ';		
+				txt += (partido.home_team.code != 'TBD')? partido.home_team.code : '???';
+				txt += ' <big>' + ((partido.status != 'future')? partido.home_team.goals : '-') + '</big> ';
+				txt += ' : ';
+				txt += ' <big>' + ((partido.status != 'future')? partido.away_team.goals : '-') + '</big> ';
+				txt += (partido.home_team.code != 'TBD')? partido.away_team.code : '???';
+				txt += ' <img src="img/blank.gif" class="flag flag-'+banderaPorCodigo(partido.away_team.code)+'">';	
+				return txt;
+			}
+			
+			var partidosCargados= false;
 			
 		</script>		
     </head>
     <body>
-		<div data-role="page" id="inicio" >
-			<div data-role="header">
-				<h1>Mundiales</h1>
+	
+		<div data-role="page" id="partidos"″>
+			<div data-role="header" data-position="fixed">
+				<h1>Brasil 2014</h1>
 			</div>
-			
-			<ul data-role="listview" >
-				<li><a href="#partidos" onclick="cargarPartidos()"> <img src="img/blank.gif"  class="flag flag-br ui-li-icon"/> Brasil 2014</a></li>
+
+			<ul id="lstpartidos" data-role="listview">
 			</ul>
+			
 			<div data-role="footer" data-position="fixed" >
 					<div data-role="navbar">
 						<ul>
-							<li><a href="#inicio" data-icon="home">Inicio</a></li>
-							<li><a href="#partidos" data-icon="calendar" >Partidos</a></li>
-							<li><a href="#partidos" data-icon="star">Llaves</a></li>
-							<li><a href="#partidos" data-icon="bullets">Posiciones</a></li>
+							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
+							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
+							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
 			</div><!-- /footer -->
 		</div>
-
-
-
-		<div data-role="page" id="partidos"″>
-			<div data-role="header">
+	
+		<div data-role="page" id="posiciones"″>
+			<div data-role="header" data-position="fixed">
 				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
-				<h1>Partidos</h1>
+				<h1>Posiciones</h1>
 			</div>
 
-			<ul id="lstpartidos" data-role="listview" data-filter="true">
+			<ol id="lstposiciones" data-role="listview" data-filter="true">
+			</ol>
+			
+			<div data-role="footer" data-position="fixed" >
+					<div data-role="navbar">
+						<ul>
+							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
+							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
+							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
+						</ul>
+					</div><!-- /navbar -->
+			</div><!-- /footer -->
+
+		</div>
+
+		
+		<div data-role="page" id="partidos_grupos"″>
+			<div data-role="header" data-position="fixed">
+				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
+				<h1>Grupos</h1>
+			</div>
+
+			<ul id="lstpartidos_grupos" data-role="listview" data-filter="true">
 			</ul>
 			
 			<div data-role="footer" data-position="fixed" >
 					<div data-role="navbar">
 						<ul>
-							<li><a href="#inicio" data-icon="home" >Inicio</a></li>
-							<li><a href="#partidos" data-icon="calendar" onclick="refresh()">Partidos</a></li>
-							<li><a href="#partidos" data-icon="star">Llaves</a></li>
-							<li><a href="#partidos" data-icon="bullets">Posiciones</a></li>
+							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
+							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
+							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
+						</ul>
+					</div><!-- /navbar -->
+			</div><!-- /footer -->
+		</div>
+		
+		<div data-role="page" id="apuestas"″>
+			<div data-role="header" data-position="fixed" >
+				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
+				<h1 id="encabezado_apuestas">Apuestas de Alguien</h1>
+			</div>
+
+			<ul id="lstapuestas" data-role="listview">
+			</ul>
+			
+			<div data-role="footer" data-position="fixed" >
+					<div data-role="navbar">
+						<ul>
+							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
+							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
+							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
 			</div><!-- /footer -->
