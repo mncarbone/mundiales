@@ -313,7 +313,7 @@
 							}
 							var txt = '<small>'+hora+'</small>&nbsp;&nbsp;';
 							txt += resultadoHTML(partido);
-							/* */
+							/* * /
 							if(partido2daFase){
 								var tl = cantParticipantesQuePusieronEnPartido('L',partido.match_number);
 								var te = cantParticipantesQuePusieronEnPartido('E',partido.match_number);
@@ -324,7 +324,7 @@
 								txtApuestas += '<a href="#posiciones" onclick="cargarPosiciones(-1,'+partido.match_number+')">'+tv+'</a>';
 								txt += '<span class="ui-li-count">'+txtApuestas+'</span>';
 							}
-							/* */
+							/ * */
 							$(lista).append($('<li><div>'+txt+'</div></li>'));
 						}						
 					});	
