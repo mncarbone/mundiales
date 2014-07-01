@@ -233,6 +233,7 @@
 				var ver = true;
 				if(partidos!= '' && participantes!= ''){
 					$( "#lstposiciones" ).html('');
+                    $("#lstposiciones").append($('<li data-role="list-divider" >Participante<span class="ui-li-count" style="color:gray;">Puntos</span></li>'));
 					var posiciones = participantesPorPuntos();
 					$.each(posiciones, function(nro, participante) {
 						if(quePuso!='' && enPartido != ''){
@@ -307,24 +308,24 @@
 							var horamin = datetime[1].split('.')[0].split(':');
 							var hora = horamin[0] + ':' + horamin[1];
 							if(dia != ultimaFecha){
-								var txtLEV = (partido2daFase)? '<span class="ui-li-count" style="color:gray;"> L | E | V </span>' : '';
+								var txtLEV = '';//(partido2daFase)? '<span class="ui-li-count" style="color:gray;"> L | E | V </span>' : '';
 								$( lista ).append($('<li data-role="list-divider" >'+dia+txtLEV+'</li>'));
 								ultimaFecha = dia;
 							}
 							var txt = '<small>'+hora+'</small>&nbsp;&nbsp;';
 							txt += resultadoHTML(partido);
-							/* * /
+							/* */
 							if(partido2daFase){
-								var tl = cantParticipantesQuePusieronEnPartido('L',partido.match_number);
-								var te = cantParticipantesQuePusieronEnPartido('E',partido.match_number);
-								var tv = cantParticipantesQuePusieronEnPartido('V',partido.match_number);
+								var tl = 'L';//cantParticipantesQuePusieronEnPartido('L',partido.match_number);
+								var te = 'E';//cantParticipantesQuePusieronEnPartido('E',partido.match_number);
+								var tv = 'V';//cantParticipantesQuePusieronEnPartido('V',partido.match_number);
 
 								txtApuestas = '<a href="#posiciones" onclick="cargarPosiciones(1,'+partido.match_number+')">'+tl+'</a> | ';
 								txtApuestas += '<a href="#posiciones" onclick="cargarPosiciones(0,'+partido.match_number+')">'+te+'</a> | ';
 								txtApuestas += '<a href="#posiciones" onclick="cargarPosiciones(-1,'+partido.match_number+')">'+tv+'</a>';
 								txt += '<span class="ui-li-count">'+txtApuestas+'</span>';
 							}
-							/ * */
+							/* */
 							$(lista).append($('<li><div>'+txt+'</div></li>'));
 						}						
 					});	
@@ -382,7 +383,7 @@
 				<h1>Posiciones</h1>
 			</div>
 
-			<ol id="lstposiciones" data-role="listview" data-filter="true">
+			<ol id="lstposiciones" data-role="listview">
 			</ol>
 			
 			<div data-role="footer" data-position="fixed" >
