@@ -17,9 +17,16 @@
 		<script type="text/javascript" src="js/app.js"></script>	
 		<script type="text/javascript">
             //var torneo = new Torneo();
+			document.addEventListener("backbutton", function(e){
+				if($.mobile.activePage.is('#partidos')){
+					e.preventDefault();
+					navigator.app.exitApp();
+				}
+				else {
+					navigator.app.backHistory()
+				}
+			}, false);
             
-			var partidos = '';
-			var participantes = '';
 			
 			function guardar(variable, dato){
 				if(localStorage && localStorage.setItem){
@@ -33,6 +40,12 @@
 				}
 				return defval;
 			}
+
+
+			var partidos = '';//leer('partidos', '');
+			var participantes = ''; //leer('participantes', '');
+			var torneo = '';
+			var cargarGrupos = true;
 			
 			function banderaPorNombre(nombre){
 				var nombres = {};
@@ -113,44 +126,184 @@
 			}
             
 			$(function() {
+				$.mobile.defaultPageTransition='flip';
 				$( "#lstpartidos" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
 				$( "#lstpartidos_grupos" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
 				$( "#lstposiciones" ).html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
 				refresh();
-		
 			});	
-			
 
 			function refresh(){
-
-				//  $.ajaxSetup({ cache: false });
-				
-				if(participantes == ''){
-					var urlApuestas = 'http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6';
-					$.getJSON(urlApuestas, function(data) {
-
-						participantes = data;
-						cargarPosiciones();
-						cargarPartidos();
-					});
-				}
-
+				//
+				$.ajaxSetup({ cache: false });				
+				var urlApuestas = 'http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6';
+				$.getJSON(urlApuestas, function(data) {
+					participantes = data;
+					actualizarDatos();
+				})
+				.fail(function( jqxhr, textStatus, error ) {
+					var err = textStatus + ", " + error;
+					console.log( "Error al actualizar: " + err );
+				});	;
 
 				var urlPartidos = 'http://worldcup.sfg.io/matches?by_date=ASC';
 				$.getJSON(urlPartidos, function(data) {
 					partidos = data;
-					cargarPartidos();
-					cargarPosiciones();
+					actualizarDatos();
 				})
 				.fail(function( jqxhr, textStatus, error ) {
 					var err = textStatus + ", " + error;
-					console.log( "Request Failed: " + err );
+					console.log( "Error al actualizar: " + err );
 				});	
 			}
 			
+			function actualizarDatos(){
+				var actualizar = true;
+				if(participantes != '' && partidos != ''){
+					if(torneo == ''){
+						torneo = new Torneo(participantes, partidos);
+					}
+					else{
+						actualizar = torneo.actualizar(participantes, partidos);
+					}
+					if(actualizar){
+						//guardar('participantes', participantes);
+						//guardar('partidos', partidos);
+						
+						cargarPartidos();
+						cargarPosiciones();
+					}
+				}
+			}			
+			
+			function cargarPartidos(){
+			
+					$( "#lstpartidos" ).html('');
+					
+					if(cargarGrupos){
+						$( "#lstpartidos_grupos" ).html('');
+					}
+					
+					var ultimaFecha = '';
+					var partidos = torneo.getPartidos();
+					for(idPartido in partidos) {
+						var partido2daFase = (idPartido > 48);
+						if(cargarGrupos || partido2daFase){
+							var lista = (partido2daFase)? '#lstpartidos' : '#lstpartidos_grupos';
+							partido = partidos[idPartido];
+							if(partido.dia != ultimaFecha){
+								var txtLEV = '';//(partido2daFase)? '<span class="ui-li-count" style="color:gray;"> L | E | V </span>' : '';
+								$( lista ).append($('<li data-role="list-divider" >'+partido.dia+txtLEV+'</li>'));
+								ultimaFecha = partido.dia;
+							}
+							var txt = '<small>'+partido.hora+'</small>&nbsp;&nbsp;';
+							txt += partidoHTML(partido);
+							/* */
+							if(partido2daFase){
+								var tl = 'L';//cantParticipantesQuePusieronEnPartido('L',partido.match_number);
+								var te = 'E';//cantParticipantesQuePusieronEnPartido('E',partido.match_number);
+								var tv = 'V';//cantParticipantesQuePusieronEnPartido('V',partido.match_number);
+
+								txtApuestas = '<a href="#posiciones" onclick="cargarApostadores(1,'+partido.id+')">'+tl+'</a> | ';
+								txtApuestas+= '<a href="#posiciones" onclick="cargarApostadores(0,'+partido.id+')">'+te+'</a> | ';
+								txtApuestas+= '<a href="#posiciones" onclick="cargarApostadores(-1,'+partido.id+')">'+tv+'</a>';
+								txt += '<span class="ui-li-count">'+txtApuestas+'</span>';
+							}
+							/* */
+							$(lista).append($('<li><div>'+txt+'</div></li>'));
+						}
+					};	
+					if(cargarGrupos){
+						$('#lstpartidos_grupos').trigger('create'); 
+						$('#lstpartidos_grupos').trigger('refresh'); 
+					}
+					$('#lstpartidos').trigger('create'); 
+					$('#lstpartidos').listview('refresh');
+					
+					cargarGrupos = false;
+			}			
+			
+			function partidoHTML(partido){
+				var txt = '';
+				txt += '<img src="img/blank.gif" class="flag flag-'+partido.local.getBandera()+'"> ';		
+				txt += partido.local.codigo;
+				txt += ' <big>' + partido.golesLocal + '</big> ';
+				txt += ' : ';
+				txt += ' <big>' + partido.golesVisitante + '</big> ';
+				txt += partido.visitante.codigo;
+				txt += ' <img src="img/blank.gif" class="flag flag-'+partido.visitante.getBandera()+'">';	
+				return txt;
+			}
+			
+			function cargarApostadores(quePuso, enPartido){
+				var quePuso = (arguments.length > 0)? ((quePuso > 0)? 'L' : ((quePuso < 0)?'V':'E')) : '';
+				var participantes = torneo.getParticipantes();
+				var partido = torneo.getPartido(enPartido);
+				var tot = participantes.length;
+				for(var i = 0; i < tot; i++) {
+					var participante = participantes[i];
+					var apuesta = participante.apuestaPara(partido);
+					if(apuesta.getResultado() == quePuso){
+						$('#pos_'+participante.id).show();
+					}
+					else{
+						$('#pos_'+participante.id).hide();
+					}
+				}					
+			}
+			
+			function cargarPosiciones(/*quePuso, enPartido*/){
+				/*
+				var quePuso = (arguments.length > 0)? ((quePuso > 0)? 'L' : ((quePuso < 0)?'V':'E')) : '';
+				var enPartido = (arguments.length > 0)? enPartido : '';
+				*/
+				var ver = true;
+				$( "#lstposiciones" ).html('');
+				$("#lstposiciones").append($('<li data-role="list-divider" >Participante<span class="ui-li-count" style="color:gray;">Puntos</span></li>'));
+
+				
+				var participantes = torneo.getParticipantes();
+				var tot = participantes.length;
+				for(var i = 0; i < tot; i++) {
+					participante = participantes[i];
+					var txt = '<a href="#apuestas" onclick="cargarApuestas('+participante.id+')">'+participante.nombre+'</a>';
+					txt += '<span class="ui-li-count">'+participante.getPuntos()+'</span>';
+					$("#lstposiciones").append($('<li id="pos_'+participante.id+'"><span>'+txt+'</span></li>'));
+				}
+				$('#lstposiciones').trigger('create');
+				$('#lstposiciones').listview('refresh');
+			}	
+			
+			function cargarApuestas(idParticipante){
+				var participante = torneo.getParticipante(idParticipante);
+				$("#lstapuestas").html('');
+				$("#encabezado_apuestas").html(participante.nombre);
+				$("#lstapuestas").append($('<li data-role="list-divider" >Resultado<span class="ui-li-count" style="color:gray;">Apuesta &rarr; Puntos</span></li>'));				
+				var total = 0;
+				for(var i in participante.apuestas) {
+					var apuesta = participante.apuestas[i];
+					var partido = apuesta.getPartido();
+					var txt = partidoHTML(partido);
+					var puntos = apuesta.getPuntos();
+					total += puntos;
+					
+					txt += '<span class="ui-li-count">&nbsp;' 
+					txt += apuesta.golesLocal+ ' - '+ apuesta.golesVisitante;
+					txt += '&nbsp;&nbsp;&rarr;&nbsp;&nbsp;<big>'+puntos+'&nbsp;</big>';
+					txt += '</span>';
+					
+					$('#lstapuestas').append($('<li><span>'+txt+'</span></li>'));
+				};
+				
+				$("#lstapuestas").append($('<li><b>Total</b><span class="ui-li-count"><big>'+total+'</big> puntos</span></li>'));
+				
+				$('#lstapuestas').trigger('create');
+				$('#lstapuestas').listview('refresh');
+			}			
+/*			
 			function partidoEntre(l,v){
 				var al = banderaPorNombre(l);
-				var av = banderaPorNombre(v);			
+				var av = banderaPorNombre(v);
 				var res = {};
 				$.each(partidos, function(nro, partido) {
 					var pl = banderaPorCodigo(partido.home_team.code);
@@ -228,28 +381,7 @@
 				return seleccionada;
 			}
 			
-			function cargarPosiciones(quePuso, enPartido){
-				var quePuso = (arguments.length > 0)? ((quePuso > 0)? 'L' : ((quePuso < 0)?'V':'E')) : '';
-				var enPartido = (arguments.length > 0)? enPartido : '';
-				var ver = true;
-				if(partidos!= '' && participantes!= ''){
-					$( "#lstposiciones" ).html('');
-                    $("#lstposiciones").append($('<li data-role="list-divider" >Participante<span class="ui-li-count" style="color:gray;">Puntos</span></li>'));
-					var posiciones = participantesPorPuntos();
-					$.each(posiciones, function(nro, participante) {
-						if(quePuso!='' && enPartido != ''){
-							ver = participantePusoEnPartido(participante.id, quePuso, enPartido);
-						}
-						if(ver){
-							var txt = '<a href="#apuestas" onclick="cargarApuestas('+participante.id+')">'+participante.nombre+'</a>';
-							txt += '<span class="ui-li-count">'+participante.puntos+'</span>';
-							$("#lstposiciones").append($('<li><span>'+txt+'</span></li>'));
-						}
-					});
-					$('#lstposiciones').trigger('create');
-					$('#lstposiciones').listview('refresh');
-				}
-			}
+
 			
 			function getPartido(idPartido){
 				var seleccionado = {}
@@ -271,88 +403,11 @@
 				return seleccionado;
 			}
 			
-			function cargarApuestas(idParticipante){
-				var participante = getParticipante(idParticipante);
-				$("#lstapuestas").html('');
-				$("#encabezado_apuestas").html(participante.nombre);
-				$("#lstapuestas").append($('<li data-role="list-divider" >Resultado<span class="ui-li-count" style="color:gray;">Apuesta &rarr; Puntos</span></li>'));				
-				var total = 0;
-				$.each(participante.apuestas, function(nro, apuesta) {
-					var partido = partidoEntre(apuesta.l, apuesta.v);
-					var txt = resultadoHTML(partido);
-					txt += '<span class="ui-li-count">' + apuesta.gl+ ' - '+ apuesta.gv;
-					puntos = (partido.status == "future")? 0 : sumarPuntos(partido.home_team.goals, partido.away_team.goals, apuesta.gl, apuesta.gv)
-					txt += ' &rarr; <big>'+puntos+'</big></span>';
-					$('#lstapuestas').append($('<li><span>'+txt+'</span></li>'));
-					total += puntos;
-				});
-				$("#lstapuestas").append($('<li><b>Total</b><span class="ui-li-count"><big>'+total+'</big> puntos</span></li>'));
-				
-				$('#lstapuestas').trigger('create');
-				$('#lstapuestas').listview('refresh');
-			}
-			
-			function cargarPartidos(){
-			
-				if(partidos!= '' && participantes!= ''){
-					
-					$( "#lstpartidos" ).html('');
-					$( "#lstpartidos_grupos" ).html('');
-					
-					var ultimaFecha = '';
-					$.each(partidos, function(nro, partido) {
-						var partido2daFase = (partido.match_number > 48);
-						//if(!partidosCargados || partido2daFase){
-						if(partido2daFase){
-							var lista = (partido2daFase)? '#lstpartidos' : '#lstpartidos_grupos';
-							var datetime = partido.datetime.split('T');
-							var dia = datetime[0];
-							var horamin = datetime[1].split('.')[0].split(':');
-							var hora = horamin[0] + ':' + horamin[1];
-							if(dia != ultimaFecha){
-								var txtLEV = '';//(partido2daFase)? '<span class="ui-li-count" style="color:gray;"> L | E | V </span>' : '';
-								$( lista ).append($('<li data-role="list-divider" >'+dia+txtLEV+'</li>'));
-								ultimaFecha = dia;
-							}
-							var txt = '<small>'+hora+'</small>&nbsp;&nbsp;';
-							txt += resultadoHTML(partido);
-							/* */
-							if(partido2daFase){
-								var tl = 'L';//cantParticipantesQuePusieronEnPartido('L',partido.match_number);
-								var te = 'E';//cantParticipantesQuePusieronEnPartido('E',partido.match_number);
-								var tv = 'V';//cantParticipantesQuePusieronEnPartido('V',partido.match_number);
 
-								txtApuestas = '<a href="#posiciones" onclick="cargarPosiciones(1,'+partido.match_number+')">'+tl+'</a> | ';
-								txtApuestas += '<a href="#posiciones" onclick="cargarPosiciones(0,'+partido.match_number+')">'+te+'</a> | ';
-								txtApuestas += '<a href="#posiciones" onclick="cargarPosiciones(-1,'+partido.match_number+')">'+tv+'</a>';
-								txt += '<span class="ui-li-count">'+txtApuestas+'</span>';
-							}
-							/* */
-							$(lista).append($('<li><div>'+txt+'</div></li>'));
-						}						
-					});	
-					//if(!partidosCargados){
-						$('#lstpartidos_grupos').trigger('create'); 
-						$('#lstpartidos_grupos').trigger('refresh'); 
-					//}
-					$('#lstpartidos').trigger('create'); 
-					$('#lstpartidos').listview('refresh');
-					
-					//partidosCargados= true;
-				}
-			}
 			
-			function resultadoHTML(partido){
-				var txt = '';
-				txt += '<img src="img/blank.gif" class="flag flag-'+banderaPorCodigo(partido.home_team.code)+'"> ';		
-				txt += (partido.home_team.code != 'TBD')? partido.home_team.code : '???';
-				txt += ' <big>' + ((partido.status != 'future')? partido.home_team.goals : '-') + '</big> ';
-				txt += ' : ';
-				txt += ' <big>' + ((partido.status != 'future')? partido.away_team.goals : '-') + '</big> ';
-				txt += (partido.home_team.code != 'TBD')? partido.away_team.code : '???';
-				txt += ' <img src="img/blank.gif" class="flag flag-'+banderaPorCodigo(partido.away_team.code)+'">';	
-				return txt;
-			}
+
+			
+*/
 			
 			//var partidosCargados= false;
 			
@@ -373,7 +428,6 @@
 						<ul>
 							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
 							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Llaves</a></li>
 							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
@@ -394,7 +448,6 @@
 						<ul>
 							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
 							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Llaves</a></li>
 							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
@@ -417,7 +470,6 @@
 						<ul>
 							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
 							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Llaves</a></li>
 							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
@@ -438,7 +490,6 @@
 						<ul>
 							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
 							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Llaves</a></li>
 							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
