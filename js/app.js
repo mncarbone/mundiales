@@ -24,7 +24,7 @@ Class.Torneo =
 		}
 		else {
 			this.datosParticipantes = JSON.stringify(datosParticipantes);
-			
+			this.participantesOrdenados = [];
 			var tot = datosParticipantes.length;
 			for(var i=0; i < tot; i++){
 				datos = datosParticipantes[i];
