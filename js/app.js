@@ -52,14 +52,17 @@ Class.Torneo =
 		}
 	}
 	
-	def.apuestasPara = function(unPartido){
-		var apuestas = [];
-		var tot = this.participantes.length
+	def.cantApuestasPara = function(unPartido,unResultado){
+		var cant = 0;
+		var tot = this.participantesOrdenados.length
 		for(var i = 0; i < tot; i++){
-			var participante = this.participantes[i];
-			apuestas.push(participante.apuestaPara(unPartido));
+			var participante = this.participantesOrdenados[i];
+            var apuesta = participante.apuestaPara(unPartido)
+			if(apuesta && apuesta.resultado == unResultado){
+                cant++;
+            }
 		}
-		return apuestas;
+		return cant;
 	}
 
 	
@@ -127,8 +130,7 @@ Class.Equipo =
 			codes['URU'] = 'uy';
 			codes['USA'] = 'us';
 			return codes[this.codigo];
-	}	
-
+	}
 
 Class.Partido = 
 	
@@ -149,25 +151,14 @@ Class.Partido =
 		this.dia = datetime[0];
 		var horamin = datetime[1].split('.')[0].split(':');
 		this.hora = horamin[0] + ':' + horamin[1];
-		/**/
-		this.apuestasPor = {
-			'L':this.cantApuestasPor('L'),
-			'E':this.cantApuestasPor('E'),
-			'V':this.cantApuestasPor('V')
-		};
-		/**/
+		this.apuestasPor = {'L':'','E':'','V':''};
 	}; def = Partido.prototype;
 	
 	def.cantApuestasPor = function(resultado){
-		var apuestas = this.torneo.apuestasPara(this);
-		var tot = apuestas.length;
-		var totApuestasPor=0;
-		for(var i=0; i<tot; i++){
-			if(apuestas[0].resultado == resultado){
-				totApuestasPor++;
-			}
-		}
-		return totApuestasPor;
+        if(this.apuestasPor[resultado] == ''){
+            this.apuestasPor[resultado] = this.torneo.cantApuestasPara(this,resultado); 
+        }
+		return this.apuestasPor[resultado];
 	}
 	
 	def.getResultado = function(){
@@ -199,17 +190,20 @@ Class.Participante =
 	}
 	
 	def.apuestaPara = function(unPartido){
-		return this.apuestas[unPartido.id];
+        if(this.apuestas.hasOwnProperty(unPartido.id)){
+            return this.apuestas[unPartido.id];
+        }
+        else{
+            return false;
+        }
 	}
 	
 	def.getPuntos = function(){
-		//if(this.puntos == ''){
-			this.puntos = 0;
-			for(var i in this.apuestas){
-				var apuesta = this.apuestas[i];
-				this.puntos += apuesta.getPuntos();
-			}
-		//}
+        this.puntos = 0;
+        for(var i in this.apuestas){
+            var apuesta = this.apuestas[i];
+            this.puntos += apuesta.getPuntos();
+        }
 		return this.puntos;
 	}
 
@@ -239,12 +233,8 @@ Class.Apuesta =
 	}
 	
 	def.getPuntos = function(){
-		//if(this.puntos == ''){
-			this.puntos = 0;
-			this.puntos += (this.resultado == this.getPartido().resultado)? 1 : 0;
-			this.puntos += (this.golesLocal == this.getPartido().golesLocal && this.golesVisitante == this.getPartido().golesVisitante)? 2 : 0;
-			
-		//}
+        this.puntos = 0;
+        this.puntos += (this.resultado == this.getPartido().resultado)? 1 : 0;
+        this.puntos += (this.golesLocal == this.getPartido().golesLocal && this.golesVisitante == this.getPartido().golesVisitante)? 2 : 0;
 		return this.puntos;
 	}
-	
