@@ -57,9 +57,8 @@
 				
                 var cacheado = (partidos!='' && participantes!='')
 				refresh(cacheado);
-
-
 			});	
+			
 			function refresh(cacheado){
 
 				$('#btn_refresh').removeClass('ui-icon-refresh');
@@ -118,7 +117,7 @@
 						cargarPosiciones();
 					}
 				}
-			}			
+			}
 			
 			function cargarPartidos(){
 			
@@ -163,7 +162,7 @@
 				$('#lstpartidos').listview('refresh');
 				
 				cargarGrupos = false;
-			}			
+			}
 			
 			function partidoHTML(partido){
 				var txt = '';
