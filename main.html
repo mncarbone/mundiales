@@ -43,7 +43,7 @@
 			var cargarGrupos = true;
             
 			$(function() {
-				//$.mobile.defaultPageTransition = 'flip';
+				//$.mobile.defaultPageTransition = 'slide';
                 
                 document.addEventListener("backbutton", function(e){
                     if($.mobile.activePage.is('#partidos')){
@@ -147,9 +147,9 @@
 							var te = partido.cantApuestasPor('E');
 							var tv = partido.cantApuestasPor('V');
 
-							txtApuestas = '<a href="#posiciones" onclick="filtrarApostadores(1,'+partido.id+')">&nbsp;'+tl+'&nbsp;</a> | ';
-							txtApuestas+= '<a href="#posiciones" onclick="filtrarApostadores(0,'+partido.id+')">&nbsp;'+te+'&nbsp;</a> | ';
-							txtApuestas+= '<a href="#posiciones" onclick="filtrarApostadores(-1,'+partido.id+')">&nbsp;'+tv+'&nbsp;</a>';
+							txtApuestas = '<a href="#posiciones" data-transition="slide" onclick="filtrarApostadores(1,'+partido.id+')">&nbsp;'+tl+'&nbsp;</a> | ';
+							txtApuestas+= '<a href="#posiciones" data-transition="slide" onclick="filtrarApostadores(0,'+partido.id+')">&nbsp;'+te+'&nbsp;</a> | ';
+							txtApuestas+= '<a href="#posiciones" data-transition="slide" onclick="filtrarApostadores(-1,'+partido.id+')">&nbsp;'+tv+'&nbsp;</a>';
 							txt += '<span class="ui-li-count">'+txtApuestas+'</span>';
 						}
 						$(lista).append($('<li><div>'+txt+'</div></li>'));
@@ -201,7 +201,7 @@
 				var tot = participantes.length;
 				for(var i = 0; i < tot; i++) {
 					participante = participantes[i];
-					var txt = '<a href="#apuestas" onclick="cargarApuestas('+participante.id+')">'+participante.nombre+'</a>';
+					var txt = '<a href="#apuestas" data-transition="slide" onclick="cargarApuestas('+participante.id+')">'+participante.nombre+'</a>';
 					txt += '<span class="ui-li-count">'+participante.getPuntos()+'</span>';
 					$("#lstposiciones").append($('<li id="pos_'+participante.id+'"><span>'+txt+'</span></li>'));
 				}
@@ -255,8 +255,8 @@
 					<div data-role="navbar">
 						<ul>
 							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
-							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
+							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()" data-transition="slide">Grupos</a></li>
+							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()" data-transition="slide">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
 			</div><!-- /footer -->
@@ -275,8 +275,8 @@
 			<div data-role="footer" data-position="fixed" >
 					<div data-role="navbar">
 						<ul>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
-							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
+							<li><a href="#partidos" data-icon="home" onclick="refresh()" data-transition="slide" data-direction="reverse">Partidos</a></li>
+							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()"  data-transition="slide" data-direction="reverse">Grupos</a></li>
 							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
@@ -298,9 +298,9 @@
 			<div data-role="footer" data-position="fixed" >
 					<div data-role="navbar">
 						<ul>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
+							<li><a href="#partidos" data-icon="home" onclick="refresh()"  data-transition="slide" data-direction="reverse">Partidos</a></li>
 							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
+							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()" data-transition="slide">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
 			</div><!-- /footer -->
@@ -319,9 +319,9 @@
 			<div data-role="footer" data-position="fixed" >
 					<div data-role="navbar">
 						<ul>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
-							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
+							<li><a href="#partidos" data-icon="home" onclick="refresh()" data-transition="slide" data-direction="reverse">Partidos</a></li>
+							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()" data-transition="slide" data-direction="reverse">Grupos</a></li>
+							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()" data-transition="slide" data-direction="reverse">Posiciones</a></li>
 						</ul>
 					</div><!-- /navbar -->
 			</div><!-- /footer -->
