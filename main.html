@@ -114,7 +114,8 @@
 						actualizar = online;
 					}
 					else{
-						actualizar = online && torneo.actualizar(participantes, partidos);
+						actualizar = torneo.actualizar(participantes, partidos);
+						actualizar = online && actualizar;
 						mostrar = forzado || (online && actualizar);
 					}
 					
