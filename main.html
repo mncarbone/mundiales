@@ -59,14 +59,15 @@
 				refresh(cacheado);
 			});	
 			
-			function update(){
+			function update(reload){
 				$.ajaxSetup({ cache: false });
-				$('#lstpartidos').html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
-				refresh();
-				$.ajaxSetup({ cache: true });				
+				if(reload){
+					$('#lstpartidos').html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
+				}
+				refresh(false, true);
 			}
 			
-			function refresh(cacheado){
+			function refresh(cacheado, forzado){
 
 				$('#btn_refresh').removeClass('ui-icon-refresh');
 				
@@ -78,31 +79,34 @@
 				var urlApuestas = 'http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6';
 				$.getJSON(urlApuestas, function(data) {
 					participantes = data;
-					actualizarDatos(true);
+					actualizarDatos(true, forzado);
 				})
 				.fail(function( jqxhr, textStatus, error ) {
 					console.log( "Error de conexion (apuestas).");
+					actualizarDatos(false);
 				});	;
 
 				var urlPartidos = 'http://worldcup.sfg.io/matches?by_date=ASC';
 				$.getJSON(urlPartidos, function(data) {
 					partidos = data;
-					actualizarDatos(true);
+					actualizarDatos(true, forzado);
 				})
 				.fail(function( jqxhr, textStatus, error ) {
 					console.log( "Error de conexion (partidos).");
+					actualizarDatos(false);
 				});	
 				
                 
                 $( "#lstposiciones li" ).show();
 			}
-			setInterval(refresh, 120000);
+			setInterval(update, 120000);
 			
-			function actualizarDatos(online){
+			function actualizarDatos(online, forzado){
+				$.ajaxSetup({ cache: true });
                 $('#btn_refresh').addClass('ui-icon-refresh');
                 $('#btn_refresh').removeClass('ui-btn-active');
 				var actualizar = false;
-				var mostrar = false;
+				var mostrar = forzado;
 				if(participantes != '' && partidos != ''){
 					if(torneo == ''){
 						torneo = new Torneo(participantes, partidos);						
@@ -111,7 +115,7 @@
 					}
 					else{
 						actualizar = online && torneo.actualizar(participantes, partidos);
-						mostrar = online && actualizar;
+						mostrar = forzado || (online && actualizar);
 					}
 					
 					if(actualizar){
@@ -248,7 +252,7 @@
 	
 		<div data-role="page" id="partidos"″>
 			<div data-role="header" data-position="fixed">
-                <a id="btn_refresh" href="#partidos" onclick="update()" data-role="button" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-refresh ui-btn-icon-notext ui-corner-all"></a>                
+                <a id="btn_refresh" href="#partidos" onclick="update(true)" data-role="button" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-refresh ui-btn-icon-notext ui-corner-all"></a>                
 				<h1>Brasil 2014</h1>
                 <a onclick="navigator.app.exitApp();" data-role="button" class="ui-btn-right ui-alt-icon ui-nodisc-icon ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all"></a>                
 			</div>
