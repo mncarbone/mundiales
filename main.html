@@ -59,6 +59,13 @@
 				refresh(cacheado);
 			});	
 			
+			function update(){
+				$.ajaxSetup({ cache: false });
+				$('#lstpartidos').html('<p align="center"><img src="css/images/ajax-loader.gif" /></p>');
+				refresh();
+				$.ajaxSetup({ cache: true });				
+			}
+			
 			function refresh(cacheado){
 
 				$('#btn_refresh').removeClass('ui-icon-refresh');
@@ -241,7 +248,7 @@
 	
 		<div data-role="page" id="partidos"″>
 			<div data-role="header" data-position="fixed">
-                <a id="btn_refresh" href="#partidos" onclick="refresh()" data-role="button" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-refresh ui-btn-icon-notext ui-corner-all"></a>                
+                <a id="btn_refresh" href="#partidos" onclick="update()" data-role="button" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-refresh ui-btn-icon-notext ui-corner-all"></a>                
 				<h1>Brasil 2014</h1>
                 <a onclick="navigator.app.exitApp();" data-role="button" class="ui-btn-right ui-alt-icon ui-nodisc-icon ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all"></a>                
 			</div>
