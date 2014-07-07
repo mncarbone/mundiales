@@ -13,44 +13,53 @@ Class.Torneo =
 	}; def = Torneo.prototype;
 
 	def.actualizar = function(datosParticipantes, datosPartidos){
-		var actualizaParticipantes = this.cargarParticipantes(datosParticipantes);
-		var actualizaPartidos = this.cargarPartidos(datosPartidos);
-		return actualizaParticipantes || actualizaPartidos;
+		var hayNovedades = (this.hayNovedadesPartidos(datosPartidos) || this.hayNovedadesParticipantes(datosParticipantes));
+        if(hayNovedades){
+            this.cargarParticipantes(datosParticipantes);
+            this.cargarPartidos(datosPartidos);
+        }
+        return hayNovedades;
 	}
 	
+    def.hayNovedadesParticipantes = function(datosParticipantes){
+        if(this.datosParticipantes != JSON.stringify(datosParticipantes)){
+            this.datosParticipantes = JSON.stringify(datosParticipantes);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    
+    def.hayNovedadesPartidos = function(datosPartidos){
+        if(this.datosPartidos != JSON.stringify(datosPartidos)){
+            this.datosPartidos = JSON.stringify(datosPartidos);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+    
 	def.cargarParticipantes = function(datosParticipantes){
-		if(this.datosParticipantes == JSON.stringify(datosParticipantes)){
-			return false;
-		}
-		else {
-			this.datosParticipantes = JSON.stringify(datosParticipantes);
-			this.participantesOrdenados = [];
-			var tot = datosParticipantes.length;
-			for(var i=0; i < tot; i++){
-				datos = datosParticipantes[i];
-				var participante = new Participante(this, datos)
-				this.participantes[participante.id] = participante;
-				this.participantesOrdenados.push(participante);
-			}
-			return true;
-		}
+        this.participantesOrdenados = [];
+        var tot = datosParticipantes.length;
+        for(var i=0; i < tot; i++){
+            datos = datosParticipantes[i];
+            var participante = new Participante(this, datos)
+            this.participantes[participante.id] = participante;
+            this.participantesOrdenados.push(participante);
+        }
 	}
 
 	def.cargarPartidos = function(datosPartidos){
-		if(this.datosPartidos == JSON.stringify(datosPartidos)){
-			return false;
-		}
-		else {
-			this.datosPartidos = JSON.stringify(datosPartidos);
-			var tot = datosPartidos.length;
-			for(var i=0; i < tot; i++){
-				datos = datosPartidos[i];
-				var partido = new Partido(this, datos);
-				this.partidos[partido.id] = partido;
-			}
-			return true;
-		}
-	}
+        var tot = datosPartidos.length;
+        for(var i=0; i < tot; i++){
+            datos = datosPartidos[i];
+            var partido = new Partido(this, datos);
+            this.partidos[partido.id] = partido;
+        }
+    }
 	
 	def.cantApuestasPara = function(unPartido,unResultado){
 		var cant = 0;
