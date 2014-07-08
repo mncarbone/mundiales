@@ -12,10 +12,28 @@
 		<script type="text/javascript" src="js/app.js"></script>	
 		<script type="text/javascript" >
 		
-			var partidos = '';
-			var participantes = '';
-			var torneo = '';
+			function guardar(variable, dato){
+				if(window.localStorage && window.localStorage.setItem){
+					window.localStorage.setItem(variable, JSON.stringify(dato));
+				}
+			}
+
+			function leer(variable, defval){
+				if(window.localStorage && window.localStorage.getItem){
+					var value = window.localStorage.getItem(variable);
+					if(value == null){
+						return defval;
+					}
+					else {
+						return JSON.parse(value);
+					}
+				}
+				return defval;
+			}
 			
+			var partidos = leer('partidos', '');
+			var participantes = leer('participantes', '');
+			var torneo = '';
 			$.ui.useOSThemes=false;
 			$.ui.ready(function(){
 			
@@ -31,6 +49,18 @@
 			
 				//$.ui.showBackButton=false
 				$.ui.backButtonText=' ';
+				var cacheado = (partidos!='' && participantes!='')
+				refresh(cacheado);
+			});
+			
+			setInterval(refresh, 120000);
+			
+			function refresh(cacheado){
+			
+				if(cacheado){
+					actualizarDatos();
+				}
+				
 				$.getJSON("http://worldcup.sfg.io/matches?by_date=ASC",{},function(data){
 					partidos = data
 					actualizarDatos();
@@ -39,18 +69,27 @@
 					participantes = data;
 					actualizarDatos();
 				});
-			});
+				
+				$( "#lstposiciones li" ).show();
+
+			}
 			
 			function actualizarDatos(){
+				var actualizar = false;
 				if(participantes != '' && partidos != ''){
 					if(torneo == ''){
-						torneo = new Torneo(participantes, partidos);						
+						torneo = new Torneo(participantes, partidos);
+						actualizar = true;
 					}
 					else{
 						actualizar = torneo.actualizar(participantes, partidos);
 					} 
-					cargarPartidos();
-					cargarPosiciones();
+					if(actualizar){
+						guardar('participantes', participantes);
+						guardar('partidos', partidos);					
+						cargarPartidos();
+						cargarPosiciones();
+					}
 				}
 			}
 			
@@ -121,7 +160,6 @@
 			function cargarApuestas(idParticipante){
 				var participante = torneo.getParticipante(idParticipante);
 				$("#lstapuestas").html('');
-				//$("#encabezado_apuestas").html(participante.nombre);
 				
 				$("#apuestas").data("title", participante.nombre);
 				
@@ -144,10 +182,6 @@
 				};
 				
 				$("#lstapuestas").append($('<li class="divider"><b>Total</b><span class="af-badge"><big>'+total+'</big> puntos</span></li>'));
-			}
-			
-			function mostrarTodos(){
-				$( "#lstposiciones li" ).show();
 			}
 			
 			function filtrarApostadores(resultado, idPartido){
@@ -199,9 +233,9 @@
             </div>
 
             <div id="navbar">
-                <a href="#main" class="icon home">Partidos</a>
-                <a href="#grupos" class="icon calendar">Grupos</a>
-                <a href="#posiciones" onclick="mostrarTodos()" class="icon star">Posiciones</a>
+                <a href="#main" class="icon home" onclick="refresh()">Partidos</a>
+                <a href="#grupos" class="icon calendar" onclick="refresh()">Grupos</a>
+                <a href="#posiciones" class="icon star" onclick="refresh()">Posiciones</a>
             </div>
         </div>
     </body>
