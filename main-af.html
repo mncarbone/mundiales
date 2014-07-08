@@ -14,7 +14,7 @@
         var participantes = '';
         var torneo = '';
         $.ui.ready(function(){
-            
+            $.ui.showBackButton=false
             $.getJSON("http://worldcup.sfg.io/matches?by_date=ASC",{},function(data){
                 partidos = data
                 actualizarDatos();
@@ -33,6 +33,7 @@
 						actualizar = torneo.actualizar(participantes, partidos);
 					} 
                     cargarPartidos();
+                    cargarPosiciones();
             }
         }
         
@@ -65,29 +66,27 @@
 							txtApuestas = '<a href="#posiciones" data-transition="slide" onclick="filtrarApostadores(1,'+partido.id+')">&nbsp;'+tl+'&nbsp;</a> | ';
 							txtApuestas+= '<a href="#posiciones" data-transition="slide" onclick="filtrarApostadores(0,'+partido.id+')">&nbsp;'+te+'&nbsp;</a> | ';
 							txtApuestas+= '<a href="#posiciones" data-transition="slide" onclick="filtrarApostadores(-1,'+partido.id+')">&nbsp;'+tv+'&nbsp;</a>';
-							txt += '<span class="af-badge cr">'+txtApuestas+'</span>';
+							txt += '<span class="af-badge">'+txtApuestas+'</span>';
 						}
                         /* */
 						$(lista).append($('<li>'+txt+'</li>'));
 					//}
 				};            
         }
-			function cargarPosiciones(){
-				var ver = true;
-				$( "#lstposiciones" ).html('');
-				$("#lstposiciones").append($('<li data-role="list-divider" >Participante<span class="ui-li-count" style="color:gray;">Puntos</span></li>'));
-				
-				var participantes = torneo.getParticipantes();
-				var tot = participantes.length;
-				for(var i = 0; i < tot; i++) {
-					participante = participantes[i];
-					var txt = '<a href="#apuestas" onclick="cargarApuestas('+participante.id+')">'+participante.nombre+'</a>';
-					txt += '<span class="ui-li-count">'+participante.getPuntos()+'</span>';
-					$("#lstposiciones").append($('<li id="pos_'+participante.id+'"><span>'+txt+'</span></li>'));
-				}
-				$('#lstposiciones').trigger('create');
-				$('#lstposiciones').listview('refresh');
-			}
+        function cargarPosiciones(){
+            var ver = true;
+            $( "#lstposiciones" ).html('');
+            $("#lstposiciones").append($('<li class="divider" >Participante<span class="af-badge" style="color:gray;">Puntos</span></li>'));
+            
+            var participantes = torneo.getParticipantes();
+            var tot = participantes.length;
+            for(var i = 0; i < tot; i++) {
+                participante = participantes[i];
+                var txt = '<a href="#apuestas" onclick="cargarApuestas('+participante.id+')">'+(i+1)+'. '+participante.nombre+'</a>';
+                txt += '<span class="af-badge">'+participante.getPuntos()+'</span>';
+                $("#lstposiciones").append($('<li id="pos_'+participante.id+'">'+txt+'</li>'));
+            }
+        }
         
         function partidoHTML(partido){
             var txt = '';
@@ -108,13 +107,10 @@
             <h1 id="pageTitle">Page Title</h1>
             </div>
             
-            <div id="segunda" data-title="Segunda" class="panel" selected="false">
-                <ul class="list">
-                <li>asd</li>
-                <li>asdasdasd</li>
-                <li>Tedasdast</li>
-                <li>asdasda</li>
-                </ul>
+            <div id="posiciones" data-title="Posiciones" class="panel" selected="false">
+                <ol id="lstposiciones" class="list">
+                    <p align="center"><img src="css/images/ajax-loader.gif" /></p>
+                </ol>
             </div>
             
             <div id="grupos" data-title="Grupos" class="panel" selected="false"  >
@@ -132,7 +128,7 @@
             <div id="navbar">
                 <a href="#main" class="icon home" data-transition="slideright">Partidos</a>
                 <a href="#grupos" class="icon calendar" data-transition="slideright">Grupos</a>
-                <a href="#segunda" class="icon star">Posiciones</a>
+                <a href="#posiciones" class="icon star">Posiciones</a>
             </div>
         </div>
     </body>

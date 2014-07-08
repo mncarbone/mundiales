@@ -977,4 +977,8 @@ textarea {
 
 #afui .af-badge {
     background-color: #FFF;
+    border-radius: 5px;
+    border: 1px solid #000;
+    top: 15px;
+    color: #333;
 }
