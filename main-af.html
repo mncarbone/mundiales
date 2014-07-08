@@ -49,18 +49,14 @@
 			
 				//$.ui.showBackButton=false
 				$.ui.backButtonText=' ';
-				var cacheado = (partidos!='' && participantes!='')
-				refresh(cacheado);
+
+				refresh();
 			});
 			
 			setInterval(refresh, 120000);
 			
-			function refresh(cacheado){
+			function refresh(){
 			
-				if(cacheado){
-					actualizarDatos();
-				}
-				
 				$.getJSON("http://worldcup.sfg.io/matches?by_date=ASC",{},function(data){
 					partidos = data
 					actualizarDatos();
