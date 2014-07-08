@@ -979,6 +979,17 @@ textarea {
     background-color: #FFF;
     border-radius: 5px;
     border: 1px solid #000;
-    top: 15px;
     color: #333;
+	padding-left: 10px;
+	padding-right: 10px;
+	font-family:tahoma;
+}
+
+#afui .af-badge.ml {
+   top: 15px;
+   right: 8px;
+}
+
+#afui .button.previous:after {
+	border: none;
 }
