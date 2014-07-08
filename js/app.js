@@ -13,7 +13,9 @@ Class.Torneo =
 	}; def = Torneo.prototype;
 
 	def.actualizar = function(datosParticipantes, datosPartidos){
-		var hayNovedades = (this.hayNovedadesPartidos(datosPartidos) || this.hayNovedadesParticipantes(datosParticipantes));
+		var hayNovedadesPartidos = this.hayNovedadesPartidos(datosPartidos);
+		var hayNovedadesParticipantes = this.hayNovedadesParticipantes(datosParticipantes);
+		var hayNovedades = (hayNovedadesPartidos || hayNovedadesParticipantes);
         if(hayNovedades){
             this.cargarParticipantes(datosParticipantes);
             this.cargarPartidos(datosPartidos);
