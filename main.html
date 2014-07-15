@@ -178,13 +178,13 @@
 			
 			function partidoHTML(partido){
 				var txt = '';
-				txt += '<img src="img/blank.gif" class="flag flag-'+partido.local.getBandera()+'"> ';		
+				txt += '<img src="img/blank.gif" class="flag flag-'+partido.local.bandera+'"> ';		
 				txt += partido.local.codigo;
 				txt += ' <big>' + partido.golesLocal + '</big> ';
 				txt += ' : ';
 				txt += ' <big>' + partido.golesVisitante + '</big> ';
 				txt += partido.visitante.codigo;
-				txt += ' <img src="img/blank.gif" class="flag flag-'+partido.visitante.getBandera()+'">';	
+				txt += ' <img src="img/blank.gif" class="flag flag-'+partido.visitante.bandera+'">';	
 				return txt;
 			}
 			

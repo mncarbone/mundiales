@@ -103,7 +103,7 @@ Class.Equipo =
 
 	function(codigo){
 		this.codigo = (codigo != 'TBD')? codigo : '???';;
-		this.bandea = this.getBandera();
+		this.bandera = this.getBandera();
 	}; def = Equipo.prototype;
 	
 	def.getBandera = function (){
