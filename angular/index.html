@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" data-ng-app="angularTodo">
+    <head>
+        <title>documento HTML</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.css" />
+        <link rel="stylesheet" href="http://cdn.jsdelivr.net/flag-icon-css/0.6.0/css/flag-icon.min.css" />
+        <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script src="http://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>        
+    </head>
+    <body data-ng-controller="mainController" >
+        <div data-role="page" id="partidos">
+            <div data-role="header" data-position="fixed">
+				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
+				<h1>Partidos</h1>                
+            </div>
+            <ul data-role="listview" data-ng-repeat="todo in todos" data-ng-cloak>
+                <li data-role="list-divider" data-ng-show="nuevo_dia">{{ fecha(todo) }}</li>
+                <li>
+                    <div>
+                        <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(todo.home_team.code) }}">
+                        {{ todo.home_team.code }} {{ todo.home_team.goals }} vs {{ todo.away_team.goals }} {{ todo.away_team.code }} 
+                        <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(todo.away_team.code) }}">
+                    </div>
+                </li>
+            </ul>
+        </div>
+        
+
+        <script src="main.js"></script>
+        
+    </body>
+</html>
