@@ -43,9 +43,11 @@
 			var cargarGrupos = true;
             
 			$(function() {
+				$( "[data-role='navbar']" ).navbar();
+				$( "[data-role='footer']" ).toolbar();
 				$.mobile.defaultPageTransition = 'none'; //slide
                 $.mobile.defaultHomeScroll = 0;
-				 
+				
                 document.addEventListener("backbutton", function(e){
                     if($.mobile.activePage.is('#partidos')){
                         e.preventDefault();
@@ -262,15 +264,6 @@
                 <p align="center"><img src="css/images/ajax-loader.gif" /></p>
 			</ul>
 			
-			<div data-role="footer" data-position="fixed" >
-					<div data-role="navbar">
-						<ul>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()">Partidos</a></li>
-							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()" >Grupos</a></li>
-							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()" >Posiciones</a></li>
-						</ul>
-					</div><!-- /navbar -->
-			</div><!-- /footer -->
 		</div>
 	
 		<div data-role="page" id="posiciones">
@@ -283,15 +276,6 @@
                 <p align="center"><img src="css/images/ajax-loader.gif" /></p>
 			</ol>
 			
-			<div data-role="footer" data-position="fixed" >
-					<div data-role="navbar">
-						<ul>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()" >Partidos</a></li>
-							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()"  >Grupos</a></li>
-							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()">Posiciones</a></li>
-						</ul>
-					</div><!-- /navbar -->
-			</div><!-- /footer -->
 
 		</div>
 
@@ -306,15 +290,7 @@
                 <p align="center"><img src="css/images/ajax-loader.gif" /></p>
 			</ul>
 			
-			<div data-role="footer" data-position="fixed" >
-					<div data-role="navbar">
-						<ul>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()"  >Partidos</a></li>
-							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()">Grupos</a></li>
-							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()" >Posiciones</a></li>
-						</ul>
-					</div><!-- /navbar -->
-			</div><!-- /footer -->
+			
 		</div>
 		
 		<div data-role="page" id="apuestas">
@@ -326,17 +302,17 @@
 			<ul id="lstapuestas" data-role="listview">
                 <p align="center"><img src="css/images/ajax-loader.gif" /></p>
 			</ul>
-			
-			<div data-role="footer" data-position="fixed" >
-					<div data-role="navbar">
-						<ul>
-							<li><a href="#partidos" data-icon="home" onclick="refresh()" >Partidos</a></li>
-							<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()" >Grupos</a></li>
-							<li><a href="#posiciones" data-icon="bullets" onclick="refresh()" >Posiciones</a></li>
-						</ul>
-					</div><!-- /navbar -->
-			</div><!-- /footer -->
+
+
 		</div>
-		
+		<div data-role="footer" data-position="fixed" data-theme="a">
+				<div data-role="navbar">
+					<ul>
+						<li><a href="#partidos" data-icon="home" onclick="refresh()" >Partidos</a></li>
+						<li><a href="#partidos_grupos" data-icon="calendar" onclick="refresh()" >Grupos</a></li>
+						<li><a href="#posiciones" data-icon="bullets" onclick="refresh()" >Posiciones</a></li>
+					</ul>
+				</div><!-- /navbar -->
+		</div><!-- /footer -->		
     </body>
 </html>
