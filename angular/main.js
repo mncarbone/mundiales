@@ -1,17 +1,27 @@
-var angularTodo = angular.module('angularTodo', []);
+var brasil2014 = angular.module('brasil2014', []);
 
 function mainController($scope, $http) {
     $scope.formData = {};
 
-    // Cuando se cargue la página, pide del API todos los TODOs
+    // Cuando se cargue la página, pide del API todos los partidos
     $http.get('http://worldcup.sfg.io/matches?by_date=ASC')
         .success(function(data) {
-            $scope.todos = data;
-            console.log(data)
+            $scope.partidos = data;
+            console.log('OK partidos');
         })
         .error(function(data) {
             console.log('Error: ' + data);
         });
+		
+    $http.get('http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6')
+        .success(function(data) {
+            $scope.participantes = data;
+            console.log('OK participantes');
+        })
+        .error(function(data) {
+            console.log('Error: ' + data);
+        });
+		
     $scope.diaAnt = '';
     $scope.nuevo_dia = true;
     
@@ -41,7 +51,7 @@ function mainController($scope, $http) {
 			codes['CRC'] = 'cr';
 			codes['CRO'] = 'hr';
 			codes['ECU'] = 'ec';
-			codes['ENG'] = 'en';
+			codes['ENG'] = 'england';
 			codes['ESP'] = 'es';
 			codes['FRA'] = 'fr';
 			codes['GER'] = 'de';

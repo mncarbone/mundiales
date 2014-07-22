@@ -1,33 +1,111 @@
 <!DOCTYPE html>
-<html lang="en" data-ng-app="angularTodo">
+<html lang="en" data-ng-app="brasil2014">
     <head>
         <title>documento HTML</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--		
         <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.css" />
-        <link rel="stylesheet" href="http://cdn.jsdelivr.net/flag-icon-css/0.6.0/css/flag-icon.min.css" />
+		<link rel="stylesheet" href="http://cdn.jsdelivr.net/flag-icon-css/0.6.0/css/flag-icon.min.css" />
+-->
+		<link rel="stylesheet" href="../css/jquery.mobile-1.4.2.min.css" />
+		<link rel="stylesheet" href="../css/mundiales.min.css" />
+		<link rel="stylesheet" href="../css/flags.css" />
+
+<!--		
         <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
         <script src="http://code.jquery.com/mobile/1.4.3/jquery.mobile-1.4.3.min.js"></script>
-        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>        
+-->
+
+		<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+		<script type="text/javascript" src="../js/jquery-1.11.1.min.js"></script>
+		<script type="text/javascript" src="../js/jquery.mobile-1.4.2.min.js"></script>	
+		
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+		<script>		
+			$(function() {
+				$( "[data-role='navbar']" ).navbar();
+				$( "[data-role='footer']" ).toolbar();
+				$.mobile.defaultPageTransition = 'none'; //slide
+                $.mobile.defaultHomeScroll = 0;
+				
+                document.addEventListener("backbutton", function(e){
+                    if($.mobile.activePage.is('#partidos')){
+                        e.preventDefault();
+                        navigator.app.exitApp();
+                    }
+                    else {
+                        navigator.app.backHistory();
+                    }
+                }, false);
+				
+        	});	
+		</script>		
     </head>
     <body data-ng-controller="mainController" >
+	
         <div data-role="page" id="partidos">
-            <div data-role="header" data-position="fixed">
-				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
-				<h1>Partidos</h1>                
-            </div>
-            <ul data-role="listview" data-ng-repeat="todo in todos" data-ng-cloak>
-                <li data-role="list-divider" data-ng-show="nuevo_dia">{{ fecha(todo) }}</li>
-                <li>
+			<div data-role="header" data-position="fixed">
+                <a id="btn_refresh" href="#partidos" onclick="update(true)" data-role="button" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-refresh ui-btn-icon-notext ui-corner-all"></a>                
+				<h1>Brasil 2014</h1>
+                <a onclick="navigator.app.exitApp();" data-role="button" class="ui-btn-right ui-alt-icon ui-nodisc-icon ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all"></a>                
+			</div>
+            <ul data-role="listview" data-ng-repeat="partido in partidos" data-ng-cloak>
+                <li data-role="list-divider" data-ng-show="(partido.match_number > 48 && nuevo_dia)">{{ fecha(partido) }}</li>
+                <li data-ng-show="(partido.match_number > 48)">
                     <div>
-                        <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(todo.home_team.code) }}">
-                        {{ todo.home_team.code }} {{ todo.home_team.goals }} vs {{ todo.away_team.goals }} {{ todo.away_team.code }} 
-                        <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(todo.away_team.code) }}">
+						<img src="../img/blank.gif" class="flag flag-{{ bandera(partido.home_team.code) }}">
+                        <!-- <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(partido.home_team.code) }}"> -->
+                        {{ partido.home_team.code }} {{ partido.home_team.goals }} vs {{ partido.away_team.goals }} {{ partido.away_team.code }} 
+                        <!-- <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(todo.away_team.code) }}"> -->
+						<img src="../img/blank.gif" class="flag flag-{{ bandera(partido.away_team.code) }}">
                     </div>
                 </li>
             </ul>
         </div>
-        
+		
+		<div data-role="page" id="partidos_grupos">
+			<div data-role="header" data-position="fixed">
+				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
+				<h1>Grupos</h1>
+			</div>
+            <ul data-role="listview">
+				<div data-ng-repeat="partido in partidos" data-ng-cloak>
+					<li data-role="list-divider" data-ng-show="(partido.match_number <= 48 && nuevo_dia)">{{ fecha(partido) }}</li>
+					<li data-ng-show="(partido.match_number <= 48)">
+						<div>
+							<img src="../img/blank.gif" class="flag flag-{{ bandera(partido.home_team.code) }}">
+							<!-- <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(partido.home_team.code) }}"> -->
+							{{ partido.home_team.code }} {{ partido.home_team.goals }} vs {{ partido.away_team.goals }} {{ partido.away_team.code }} 
+							<!-- <img style="width: 16px; height: 11px;" src="{{blank}}" class="flag-icon flag-icon-{{ bandera(todo.away_team.code) }}"> -->
+							<img src="../img/blank.gif" class="flag flag-{{ bandera(partido.away_team.code) }}">
+						</div>
+					</li>
+				</div>
+            </ul>
+        </div>
+		
+		<div data-role="page" id="posiciones">
+			<div data-role="header" data-position="fixed">
+				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
+				<h1>Posiciones</h1>
+			</div>
+			<ol data-role="listview" >
+                <li data-ng-repeat="participante in participantes" data-ng-cloak>
+                    <span>{{participante.nombre}}</span>
+                </li>
+            </ol>
+		</div>		
+
+		<div data-role="footer" data-position="fixed" data-theme="a">
+				<div data-role="navbar">
+					<ul>
+						<li><a href="#partidos" data-icon="home">Partidos</a></li>
+						<li><a href="#partidos_grupos" data-icon="calendar" >Grupos</a></li>
+						<li><a href="#posiciones" data-icon="bullets">Posiciones</a></li>
+					</ul>
+				</div><!-- /navbar -->
+		</div><!-- /footer -->	        
 
         <script src="main.js"></script>
         
