@@ -1,25 +1,62 @@
 var brasil2014 = angular.module('brasil2014', []);
 
+function guardar(variable, dato){
+	if(window.localStorage && window.localStorage.setItem){
+		window.localStorage.setItem(variable, JSON.stringify(dato));
+	}
+}
+
+function leer(variable, defval){
+	if(window.localStorage && window.localStorage.getItem){
+		var value = window.localStorage.getItem(variable);
+		if(value == null){
+			return defval;
+		}
+		else {
+			return JSON.parse(value);
+		}
+	}
+	return defval;
+}
+			
 function mainController($scope, $http) {
     $scope.formData = {};
-
+	$scope.cargandoPartidos = true;
+	$scope.cargandoPosiciones = true;
+	
+	$scope.partidos = leer('partidos', '');
+	if($scope.partidos != ''){
+		$scope.cargandoPartidos = false;
+	}
+	$scope.participantes = leer('participantes', '');
+	if($scope.participantes != ''){
+		$scope.cargandoPosiciones = false;
+	}
+	
     // Cuando se cargue la página, pide del API todos los partidos
-    $http.get('http://worldcup.sfg.io/matches?by_date=ASC')
+    $http.get('http://worldcup.sfg.io/matches?by_date=ASC', {cache:true})
         .success(function(data) {
             $scope.partidos = data;
+			guardar('partidos', data);
             console.log('OK partidos');
+			$scope.cargandoPartidos = false;
+			
         })
         .error(function(data) {
             console.log('Error: ' + data);
+			$scope.cargandoPartidos = false;
         });
-		
-    $http.get('http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6')
+	
+    $http.get('http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6', {cache:true})
         .success(function(data) {
             $scope.participantes = data;
+			guardar('participantes', data);
             console.log('OK participantes');
+			$scope.cargandoPosiciones = false;
         })
         .error(function(data) {
             console.log('Error: ' + data);
+			$scope.cargandoPosiciones = false;
         });
 		
     $scope.diaAnt = '';
