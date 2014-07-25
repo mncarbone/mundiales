@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		<title>NUMEROS</title>
+		
+		<meta charset="UTF-8"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<meta name="HandheldFriendly" content="true" />
+
+		<link rel="stylesheet" href="css/jquery.mobile-1.4.2.min.css" />
+		<link rel="stylesheet" href="css/app.mobile.theme.css" />
+
+		<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
+		<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+		<script type="text/javascript" src="js/jquery.mobile-1.4.2.min.js"></script>	
+<script type="text/javascript">
+		Class = window;
+		function parseIf(el, obj){
+			var result = '';
+			if(typeof eval(obj)  === 'boolean' && eval(obj)){
+				result = parseObject(el, obj);
+			}
+			return result;
+		}
+		
+		function parseList(el, obj){
+			var result = '';
+			if(eval(obj) instanceof Array){
+				var arr = eval(obj);
+				var ti = arr.length;
+				for(var i=0; i<ti; i++){
+					result += parseObject(el, obj+'['+i+']');
+				}
+			}
+			return result;
+		}
+		
+		function parseObject(el, obj){
+			var template = '';
+			if(el.dataset.template && el.dataset.template != ''){
+				template = el.dataset.template
+			}
+			else{
+				template = el.innerHTML
+				el.dataset.template = template;
+			}
+			var result = '';
+			parts = template.split('{{');
+			var ti = parts.length;
+			result += parts[0];
+			for(var i=1; i<ti; i++){
+				var subparts = parts[i].split('}}');
+				result += eval(obj+'.'+subparts[0]);
+				result += subparts[1];
+			}
+			return result;		
+		}
+		
+		Class.Tarea = 
+			function(uNombre){	
+				this.nombre = uNombre;
+			}
+			
+		Class.Persona = 
+			function(uNombre, unaEdad){
+				this.nombre = uNombre;
+				this.edad = unaEdad;
+				this.tareas = [];
+				this.cosas = {};
+			}; var def = window.Persona.prototype;
+			
+			def.proxEdad = function(){
+				return this.edad + 1;
+			}
+			
+			def.agregarCosa = function(clave, valor){
+				this.cosas[clave] = valor;
+			}
+			
+			def.agregarTarea = function(nombreTarea){
+				this.tareas.push(new Tarea(nombreTarea));
+			}
+			
+		persona = new Persona('Juan', 15);
+		persona.agregarCosa('tieneCasa', true)
+		persona.agregarTarea('lavar');
+		persona.agregarTarea('planchar');
+		
+		persona1 = new Persona('Pepe', 25);
+		persona1.agregarCosa('tieneCasa', false);
+		
+		personas = [persona, persona1, new Persona('Carlitos', 8)];
+		
+		function init(){
+		
+			$("*[data-list]").each(function(index, el){
+				el.innerHTML = parseList(el, el.dataset.list);
+				$(el).trigger('create');
+				$(el).listview('refresh');
+			});
+			$("*[data-object]").each(function(index, el){
+				el.innerHTML = parseObject(el, el.dataset.object);
+			});
+			$("*[data-if]").each(function(index, el){
+				el.innerHTML = parseIf(el, el.dataset.if);
+			});
+		
+		}
+		function agregarPersona(){
+			personas.push(new Persona('Otro loco', 50));
+			init();
+		}
+    </script>		
+    </head>
+    <body>
+	
+		<div data-role="page" id="home">
+			<div data-role="header" data-position="fixed" data-theme="a">
+				<h1>NUMEROS</h1>
+			</div>
+
+			<ol data-role="listview" data-list="personas" data-inset="true" >
+                <li><a href="#">{{nombre}} de {{edad}}</a></li>
+			</ol>
+			
+		</div>	
+		<div data-role="page" id="nueva">
+			<div data-role="header" data-position="fixed" data-theme="a">
+				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
+				<h1>MAS NUMEROS</h1>
+			</div>
+
+			<ul data-role="listview" data-inset="true">
+				<li><a href="#">Acura</a></li>
+				<li><a href="#">Audi</a></li>
+				<li><a href="#">BMW</a></li>
+				<li><a href="#">Cadillac</a></li>
+				<li><a href="#">Ferrari</a></li>
+			</ul>
+			<button onclick="agregarPersona()">Agregar Persona</button>
+		</div>
+		<!-- Footer Nav -->
+		<div data-role="footer" data-position="fixed" data-theme="a" data-tap-toggle="false">
+			<div data-role="navbar">
+				<ul>
+					<li><a href="#home" data-icon="home">Home</a></li>
+					<li><a href="#nueva" data-icon="star">Nueva</a></li>
+				</ul>
+			</div>
+		</div>		
+		<script type="text/javascript">		
+			$(function() {
+				$( "[data-role='navbar']" ).navbar();
+				$( "[data-role='footer']" ).toolbar();
+				$.mobile.defaultPageTransition = 'none';
+                $.mobile.defaultHomeScroll = 0;
+				
+                document.addEventListener("backbutton", function(e){
+                    if($.mobile.activePage.is('#home')){
+                        e.preventDefault();
+                        navigator.app.exitApp();
+                    }
+                    else {
+                        navigator.app.backHistory();
+                    }
+                }, false);
+				init()
+        	});	
+		</script>		
+	</body>
+</html>
