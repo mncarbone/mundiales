@@ -178,7 +178,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             api.add("self")
             ## Compile the api for use in the lexer
             api.prepare()
-            self.lexer.setFont(self.font)
+            #self.lexer.setFont(self.font)
             self.lexer.setDefaultFont(self.font)
             self.ui.textEdit.setLexer(self.lexer)
         except:
@@ -234,9 +234,11 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         # You can setRootPath to any path.
 
         model.setRootPath(QDir.rootPath())
-        self.ui.treeView.setModel(model)
+        self.ui.treeView.setModel(model)
+
         self.ui.treeView.hideColumn(1)
-        self.ui.treeView.hideColumn(3)
+        self.ui.treeView.hideColumn(3)
+
 
         # Set the root index of the view as the user's home directory.
 
