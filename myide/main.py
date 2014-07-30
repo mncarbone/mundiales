@@ -26,8 +26,8 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         QMainWindow.__init__(self)
 ##        self.ui = Ui_MainWindow()
         self.ui = uic.loadUi(os.path.dirname(os.path.realpath(sys.argv[0]))+"/main.ui", self)
+        self.uiTitle = self.ui.windowTitle()
         self.fileName = file
-
         self.lastDir = os.path.dirname(self.fileName)
        # set up User Interface (widgets, layout...)
 ##        self.ui.setupUi(self)
@@ -40,59 +40,96 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         # custom slots connections
 
-        QObject.connect(self.ui.pushButton,SIGNAL("released()"),self.run) # signal/slot connection
-        QObject.connect(self.ui.actionNuevo,SIGNAL("triggered()"),self.new) # signal/slot connection
-        QObject.connect(self.ui.actionAbrir,SIGNAL("triggered()"),self.open) # signal/slot connection
-        QObject.connect(self.ui.actionGuardar,SIGNAL("triggered()"),self.save) # signal/slot connection
-        QObject.connect(self.ui.actionGuardar_Como,SIGNAL("triggered()"),self.saveAs) # signal/slot connection
-        QObject.connect(self.ui.treeView,SIGNAL("doubleClicked(QModelIndex)"),self.openFromTree) # signal/slot connection
+        QObject.connect(self.ui.pushButton, SIGNAL("released()"),self.run) # signal/slot connection
+        QObject.connect(self.ui.actionNuevo, SIGNAL("triggered()"),self.new) # signal/slot connection
+        QObject.connect(self.ui.actionAbrir, SIGNAL("triggered()"),self.open) # signal/slot connection
+        QObject.connect(self.ui.actionGuardar, SIGNAL("triggered()"),self.save) # signal/slot connection
+        QObject.connect(self.ui.actionGuardar_Como, SIGNAL("triggered()"),self.saveAs) # signal/slot connection
+        QObject.connect(self.ui.actionBuscar_siguiente, SIGNAL("triggered()"),self.searchNext) # signal/slot connection
 
+        QObject.connect(self.ui.actionBuscar_Seleccionado, SIGNAL("triggered()"), self.searchSelected) # signal/slot connection
+        QObject.connect(self.ui.treeView,SIGNAL("doubleClicked(QModelIndex)"),self.openFromTree) # signal/slot connection
+        QObject.connect(self.ui.textEdit,SIGNAL("textChanged()"),self.setUnsaved) # signal/slot connection
         
-        #self.ui.show()
-        
+    def setUnsaved(self):
+        title = ('<nuevo>' if self.fileName == '' else self.fileName) + ' - ' + self.uiTitle 
+        self.ui.setWindowTitle('*' + title)
+
+    def setSaved(self):
+        title = self.fileName + ' - ' + self.uiTitle 
+        self.ui.setWindowTitle(title)
+
+    def searchSelected(self):
+
+        text = ''
+        if self.ui.textEdit.hasSelectedText():
+            text = self.ui.textEdit.selectedText()
+
+        if(self.ui.lineEdit.text() != ''):
+           text = self.ui.lineEdit.text()
+        if(text != ''):
+
+            self.ui.textEdit.findFirst(
+
+                    text, 
+                    False,
+                    False,
+                    False,
+                    True)
+    #                ,
+    ##                forward = True, #opt
+    ##                line=-1, #opt
+    ##                index=-1, #opt
+    ##                show=True, #opt
+    ##                posix=False  #opt
+    ##            )
+
+    def searchNext(self):
+
+        self.ui.textEdit.findNext()
+
     def new(self):
         self.fileName = ''
         self.ui.textEdit.setText('')
-
         
     def openFromTree(self, index):
-
         indexItem = self.ui.treeView.model().index(index.row(), 0, index.parent())
-
         fileName = self.ui.treeView.model().filePath(indexItem)        
-
         if fileName != '':
-
             self.fileOpen(fileName)
 
             
     def fileOpen(self, fileName):
-##        try:        
+        try:        
             self.fileName = fileName
             self.lastDir = os.path.dirname(self.fileName)
 
-            self.ui.treeView.setRootIndex(self.ui.treeView.model().index(self.lastDir))
+            self.changeFolder(self.lastDir)
             file = open(self.fileName, 'r')
             contents = file.read()
             fn, ext = os.path.splitext(self.fileName)
             self.changeLexer(ext.lower())
             self.ui.textEdit.setText(contents)
             file.close()
-##        except:
-##            pass
+
+            self.setSaved()
+        except:
+            pass
         
     def fileSave(self, fileName):
-##        try:
+        try:
             self.fileName = fileName
 
             self.lastDir = os.path.dirname(self.fileName)
 
-            self.ui.treeView.setRootIndex(self.ui.treeView.model().index(self.lastDir))
+            self.changeFolder(self.lastDir)
+
             file = open(self.fileName, 'w')
             file.write(self.ui.textEdit.text())            
             file.close()
-##        except:
-##            pass
+            self.setSaved()
+        except:
+            pass
 
         
     def open(self):
@@ -178,7 +215,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             api.add("self")
             ## Compile the api for use in the lexer
             api.prepare()
-            #self.lexer.setFont(self.font)
+            self.lexer.setFont(self.font)
             self.lexer.setDefaultFont(self.font)
             self.ui.textEdit.setLexer(self.lexer)
         except:
@@ -226,32 +263,30 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         self.changeLexer()
 
-
-        #self.ui.dockWidget.hide()
-
-        model = QFileSystemModel()
-
-        # You can setRootPath to any path.
-
-        model.setRootPath(QDir.rootPath())
-        self.ui.treeView.setModel(model)
-
-        self.ui.treeView.hideColumn(1)
-        self.ui.treeView.hideColumn(3)
-
-
         # Set the root index of the view as the user's home directory.
 
         #self.ui.treeView.setRootIndex(model.index(QDir.homePath()))
         if self.lastDir != '':
-##            self.ui.treeView.setModel(model)
-            print('<<',self.lastDir,'>>')
-            self.ui.treeView.setRootIndex(self.ui.treeView.model().index(self.lastDir))
 
+            self.changeFolder(self.lastDir)
+
+            
+    def changeFolder(self, folder):
+
+        if self.ui.treeView.model() is None:
+
+            model = QFileSystemModel()
+
+            model.setRootPath(QDir.rootPath())
+
+            self.ui.treeView.setModel(model)
+            self.ui.treeView.hideColumn(1)
+            self.ui.treeView.hideColumn(2)
+            self.ui.treeView.hideColumn(3)
+
+        self.ui.treeView.setRootIndex(self.ui.treeView.model().index(folder))
         
-def cantar(palabra):
-    print(palabra*3)
-    
+ 
 # Main entry to program.  Sets up the main app and create a new window.
 def main(argv):
 

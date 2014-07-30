@@ -15,141 +15,143 @@
 		<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
 		<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
 		<script type="text/javascript" src="js/jquery.mobile-1.4.2.min.js"></script>	
-<script type="text/javascript">
-		Class = window;
-		function parseIf(el, obj){
-			var result = '';
-			if(typeof eval(obj)  === 'boolean' && eval(obj)){
-				result = parseObject(el, obj);
-			}
-			return result;
-		}
+        <script type="text/javascript">
+        
+            Class = window;
+            
+            function parseIf(el, obj){
+                var result = '';
+                if(typeof eval(obj)  === 'boolean' && eval(obj)){
+                    result = parseObject(el, obj);
+                }
+                return result;
+            }
+            
+            function parseList(el, obj){
+                var result = '';
+                if(eval(obj) instanceof Array){
+                    var arr = eval(obj);
+                    var ti = arr.length;
+                    for(var i=0; i<ti; i++){
+                        result += parseObject(el, obj+'['+i+']', i);
+                    }
+                }
+                return result;
+            }
+            
+            function parseObject(el, obj, pos){
+                pos = pos || 0;
+                var template = '';
+                
+                if(el.dataset.template && el.dataset.template != ''){
+                    template = el.dataset.template
+                }
+                else{
+                    template = el.innerHTML
+                    el.dataset.template = template;
+                }
+                var result = '';
+                parts = template.split('{{');
+                var ti = parts.length;
+                result += parts[0];
+                for(var i=1; i<ti; i++){
+                    var subparts = parts[i].split('}}');
+                    var variable = subparts[0];
+                    var constant = subparts[1];
+                    if(variable == '#'){
+                        result += pos;
+                    }
+                    else{
+                        variable = (variable == '*')?'toString()':variable;
+                        result += eval(obj+'.'+variable);
+                    }
+                    result += constant;
+                }
+                return result;		
+            }
+            
+            Class.Tarea = 
+                function(uNombre){	
+                    this.nombre = uNombre;
+                }
+                
+            Class.Persona = 
+                function(uNombre, unaEdad){
+                    this.nombre = uNombre;
+                    this.edad = unaEdad;
+                    this.texto = '';
+                    this.tareas = [];
+                    this.cosas = {};
+                }; var Def = Persona.prototype;
+                
+                Def.proxEdad = function(){
+                    return this.edad + 1;
+                }
+                
+                Def.agregarCosa = function(clave, valor){
+                    this.cosas[clave] = valor;
+                }
+                
+                Def.agregarTarea = function(nombreTarea){
+                    this.tareas.push(new Tarea(nombreTarea));
+                }
+                
+            persona = new Persona('Juan', 15);
+            persona.agregarCosa('tieneCasa', true)
+            persona.agregarTarea('lavar');
+            persona.agregarTarea('planchar');
+            persona.texto = 'tyutyutyutyuyutyutyu';
+            
+            persona1 = new Persona('Pepe', 25);
+            persona1.agregarCosa('tieneCasa', false);
+            persona1.texto = 'asdasdasdasdasdasdasd';
+            personas = [persona, persona1, new Persona('Carlitos', 8)];
+            
+            function render(selector){
+                selector = selector || '';
+                if(selector==''){
+                    try{
+                        $('*').trigger('create');
+                        $('*').listview('refresh');
+                    }
+                    catch(e){
+                    }
+                }
+                $(selector + " *[data-list]").each(function(index, el){
+                    el.innerHTML = parseList(el, el.dataset.list);
+                });
+                $(selector + " *[data-object]").each(function(index, el){
+                    el.innerHTML = parseObject(el, el.dataset.object);
+                });
+                $(selector + " *[data-if]").each(function(index, el){
+                    el.innerHTML = parseIf(el, el.dataset.if);
+                });
+            }
+            
+            function agregarAuto(){
+                autos.push('Chevrolet');
+                render('#nueva');
+            }
+            
+            var n = 0;
+            function seleccionarPersona(sel){	
+                n = sel;
+                render('#detalle');
+            }
+            
+            function agregarPersona(){
+                personas.push(new Persona('Otro loco', 50));
+                render('#home');
+            }
+            
+            var autos = ['Acura',
+                {marca:'Audi'},
+                'BMW',
+                'Cadillac',
+                'Ferrari'
+            ]
 		
-		function parseList(el, obj){
-			var result = '';
-			if(eval(obj) instanceof Array){
-				var arr = eval(obj);
-				var ti = arr.length;
-				for(var i=0; i<ti; i++){
-					result += parseObject(el, obj+'['+i+']', i);
-				}
-			}
-			return result;
-		}
-		
-		function parseObject(el, obj, pos){
-			pos = pos || 0;
-			var template = '';
-			
-			if(el.dataset.template && el.dataset.template != ''){
-				template = el.dataset.template
-			}
-			else{
-				template = el.innerHTML
-				el.dataset.template = template;
-			}
-			var result = '';
-			parts = template.split('{{');
-			var ti = parts.length;
-			result += parts[0];
-			for(var i=1; i<ti; i++){
-				var subparts = parts[i].split('}}');
-				var variable = subparts[0];
-				var constant = subparts[1];
-				if(variable == '#'){
-					result += pos;
-				}
-				else{
-					variable = (variable == '*')?'toString()':variable;
-					result += eval(obj+'.'+variable);
-				}
-				result += constant;
-			}
-			return result;		
-		}
-		
-		Class.Tarea = 
-			function(uNombre){	
-				this.nombre = uNombre;
-			}
-			
-		Class.Persona = 
-			function(uNombre, unaEdad){
-				this.nombre = uNombre;
-				this.edad = unaEdad;
-				this.texto = '';
-				this.tareas = [];
-				this.cosas = {};
-			}; var def = window.Persona.prototype;
-			
-			def.proxEdad = function(){
-				return this.edad + 1;
-			}
-			
-			def.agregarCosa = function(clave, valor){
-				this.cosas[clave] = valor;
-			}
-			
-			def.agregarTarea = function(nombreTarea){
-				this.tareas.push(new Tarea(nombreTarea));
-			}
-			
-		persona = new Persona('Juan', 15);
-		persona.agregarCosa('tieneCasa', true)
-		persona.agregarTarea('lavar');
-		persona.agregarTarea('planchar');
-		persona.texto = 'tyutyutyutyuyutyutyu';
-		
-		persona1 = new Persona('Pepe', 25);
-		persona1.agregarCosa('tieneCasa', false);
-		persona1.texto = 'asdasdasdasdasdasdasd';
-		personas = [persona, persona1, new Persona('Carlitos', 8)];
-		
-		function render(selector){
-			selector = selector || '';
-			if(selector==''){
-				try{
-					$('*').trigger('create');
-					$('*').listview('refresh');
-				}
-				catch(e){
-				}
-			}
-			$(selector + " *[data-list]").each(function(index, el){
-				el.innerHTML = parseList(el, el.dataset.list);
-			});
-			$(selector + " *[data-object]").each(function(index, el){
-				el.innerHTML = parseObject(el, el.dataset.object);
-			});
-			$(selector + " *[data-if]").each(function(index, el){
-				el.innerHTML = parseIf(el, el.dataset.if);
-			});
-		}
-		
-		function agregarAuto(){
-			autos.push('Chevrolet');
-			render('#nueva');
-		}
-		
-		var n = 0;
-		function seleccionarPersona(sel){	
-			n = sel;
-			render('#detalle');
-		}
-		
-		function agregarPersona(){
-			personas.push(new Persona('Otro loco', 50));
-			render('#home');
-		}
-		
-		var autos = ['Acura',
-			{marca:'Audi'},
-			'BMW',
-			'Cadillac',
-			'Ferrari'
-		]
-		
-    </script>		
+        </script>		
     </head>
     <body>
 	

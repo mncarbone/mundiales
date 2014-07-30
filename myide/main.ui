@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>859</width>
+    <width>900</width>
     <height>800</height>
    </rect>
   </property>
@@ -28,6 +28,19 @@
     <item>
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QWidget" name="widget_2" native="true"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Buscar:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit"/>
+       </item>
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
@@ -58,7 +71,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>859</width>
+     <width>900</width>
      <height>23</height>
     </rect>
    </property>
@@ -85,6 +98,8 @@
     <addaction name="actionPegar"/>
     <addaction name="actionSeleccionar_Todo"/>
     <addaction name="separator"/>
+    <addaction name="actionBuscar_Seleccionado"/>
+    <addaction name="actionBuscar_siguiente"/>
     <addaction name="actionEjecutar"/>
    </widget>
    <widget class="QMenu" name="menuVer">
@@ -242,6 +257,22 @@
     <string>Panel Archivos</string>
    </property>
   </action>
+  <action name="actionBuscar_siguiente">
+   <property name="text">
+    <string>Buscar siguiente</string>
+   </property>
+   <property name="shortcut">
+    <string>F3</string>
+   </property>
+  </action>
+  <action name="actionBuscar_Seleccionado">
+   <property name="text">
+    <string>Buscar Seleccionado</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F3</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -309,6 +340,22 @@
     <hint type="sourcelabel">
      <x>93</x>
      <y>402</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>lineEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>actionBuscar_Seleccionado</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>398</x>
+     <y>758</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
