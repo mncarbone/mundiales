@@ -20,7 +20,8 @@ from PyQt4 import Qsci, QtCore, QtGui, uic
 #( Ui_MainWindow, QMainWindow ) = uic.loadUiType( 'ui/main.ui' )
 
 class MainWindow(QMainWindow):#1#, Ui_MainWindow):
-
+    
+    
     def __init__(self, file):
 
         QMainWindow.__init__(self)
@@ -31,7 +32,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.lastDir = os.path.dirname(self.fileName)
        # set up User Interface (widgets, layout...)
 ##        self.ui.setupUi(self)
-        
+        self.highlightedBrackets = [0,0,0,0]
         
         self.setupEditor()
         
@@ -46,11 +47,124 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         QObject.connect(self.ui.actionGuardar, SIGNAL("triggered()"),self.save) # signal/slot connection
         QObject.connect(self.ui.actionGuardar_Como, SIGNAL("triggered()"),self.saveAs) # signal/slot connection
         QObject.connect(self.ui.actionBuscar_siguiente, SIGNAL("triggered()"),self.searchNext) # signal/slot connection
-
         QObject.connect(self.ui.actionBuscar_Seleccionado, SIGNAL("triggered()"), self.searchSelected) # signal/slot connection
         QObject.connect(self.ui.treeView,SIGNAL("doubleClicked(QModelIndex)"),self.openFromTree) # signal/slot connection
         QObject.connect(self.ui.textEdit,SIGNAL("textChanged()"),self.setUnsaved) # signal/slot connection
+        QObject.connect(self.ui.textEdit,SIGNAL("cursorPositionChanged(int, int)"),self.highlightTag) # signal/slot connection
         
+
+
+    def findMatchingClosingTag(self, lineNumber, text, tagName, closingBracket=0, level=0):
+        if lineNumber <= self.ui.textEdit.lines():
+            closeTag = '</'+tagName+'>'
+            found = text.find(closeTag, closingBracket+1 if closingBracket>0 else 0) 
+            openTag = '<'+tagName+' '
+            other = text.find(openTag, closingBracket+1 if closingBracket>0 else 0)
+            newLevel = 0
+            if newLevel == 0 and found > 0:
+                openingBracketInLine = found
+                closingBracketInLine = found + len(closeTag)
+                openingBracket = self.ui.textEdit.positionFromLineIndex(lineNumber, openingBracketInLine) if openingBracketInLine != -1 else -1
+                closingBracket = self.ui.textEdit.positionFromLineIndex(lineNumber, closingBracketInLine) if closingBracketInLine != -1 else -1
+                self.highlight_tag(openingBracket, closingBracket)
+            else:
+                text = self.ui.textEdit.text(lineNumber+1)
+                self.findMatchingClosingTag(lineNumber+1, text, tagName, level=newLevel)
+                
+
+    def findBracket(self, position, index, text, searchedBracket, breakBracket, reverse=False):
+        foundBracket = -1
+        if not reverse:
+            posSearch = text.rfind(searchedBracket, 0, index)
+            posBreack = text.rfind(breakBracket, 0, index)
+            if posBreack < posSearch :
+                foundBracket = posSearch
+        else:
+            posSearch = text.find(searchedBracket, index)
+            posBreack = text.find(breakBracket, index)
+            if posBreack > posSearch or posBreack == -1:
+                foundBracket = posSearch    
+        return foundBracket
+
+    def is_tag_opening(self, text, openingBracket):
+        return text[openingBracket+1] != '/'
+
+    def get_tag_name(self, text, openingBracket, closingBracket, isTagOpening):
+        start = openingBracket + (1 if isTagOpening else 2)
+        return text[start : closingBracket].split()[0]
+
+    def findMatchingTag(self, line, text, openingBracket, closingBracket):
+        isTagOpening = self.is_tag_opening(text, openingBracket);
+        tagName = self.get_tag_name(text, openingBracket, closingBracket, isTagOpening);
+        
+        if(isTagOpening):
+            self.findMatchingClosingTag(line, text, tagName, closingBracket);
+##        else
+##            self.findMatchingOpeningTag(tagName, openingBracket);        
+        
+    def is_tag_self_closing(self, text, closingBracket):
+        isTagSelfClosing = False;
+        charBeforeBracket = text[closingBracket-1];
+        if('/' == charBeforeBracket):
+            isTagSelfClosing = True;
+        return isTagSelfClosing;
+
+        
+    def clear_previous_highlighting(self, rangeStart, rangeEnd):
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICATORCLEARRANGE, rangeStart, rangeEnd+1); ####        
+
+    def run_tag_highlighter(self, lineNumber, index):
+        position = self.ui.textEdit.positionFromLineIndex(lineNumber, index)
+        lineText = self.ui.textEdit.text(lineNumber)
+        
+        openingBracketInLine = self.findBracket(position, index, lineText, '<', '>');
+        closingBracketInLine = self.findBracket(position, index, lineText, '>', '<', reverse=True);
+
+##        openingBracket = position - index + openingBracketInLine if openingBracketInLine != -1 else -1
+##        closingBracket = position - index + closingBracketInLine if closingBracketInLine != -1 else -1
+        openingBracket = self.ui.textEdit.positionFromLineIndex(lineNumber, openingBracketInLine) if openingBracketInLine != -1 else -1
+        closingBracket = self.ui.textEdit.positionFromLineIndex(lineNumber, closingBracketInLine) if closingBracketInLine != -1 else -1
+
+        if (-1 == openingBracket or -1 == closingBracket):
+            self.clear_previous_highlighting(self.highlightedBrackets[0], self.highlightedBrackets[1])
+            self.clear_previous_highlighting(self.highlightedBrackets[2], self.highlightedBrackets[3])
+            self.highlightedBrackets = [0,0,0,0]
+            return 0
+
+##        #/* If the cursor jumps from one tag into another, clear previous highlighted tags*/
+        if(openingBracket != self.highlightedBrackets[0] or  closingBracket != self.highlightedBrackets[1]):
+            self.clear_previous_highlighting(self.highlightedBrackets[0], self.highlightedBrackets[1])
+            self.clear_previous_highlighting(self.highlightedBrackets[2], self.highlightedBrackets[3])
+
+##        /* Highlight current tag. Matching tag will be highlighted from
+##         * findMatchingTag() functiong */
+        if(openingBracket != -1 and closingBracket != -1):
+            self.highlightedBrackets[0] = openingBracket;
+            self.highlightedBrackets[1] = closingBracket;
+            self.highlight_tag(openingBracket, closingBracket);
+
+##        /* Find matching tag only if a tag is not self-closing */
+        if(not self.is_tag_self_closing(lineText, closingBracketInLine)):        
+            self.findMatchingTag(lineNumber, lineText, openingBracketInLine, closingBracketInLine)
+##            print('line:',lineNumber, 'index:',index, 'pos:',position)
+##            print('lineText:',lineText)
+##            print('openingBracket:',openingBracket)
+##            print('closingBracket:',closingBracket)
+
+        
+    def highlight_tag(self, openingBracket, closingBracket):
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETSTYLE, 0, Qsci.QsciScintilla.INDIC_STRAIGHTBOX) ####        
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETFORE, 0, 0xFF0000) ####        
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETALPHA, 0, 60) ####        
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICATORFILLRANGE, openingBracket, closingBracket-openingBracket+1) ####        
+
+
+    def highlightTag(self, line, index):
+
+        self.run_tag_highlighter(line, index)##
+
+        
+
     def setUnsaved(self):
         title = ('<nuevo>' if self.fileName == '' else self.fileName) + ' - ' + self.uiTitle 
         self.ui.setWindowTitle('*' + title)
@@ -62,11 +176,15 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     def searchSelected(self):
 
         text = ''
-        if self.ui.textEdit.hasSelectedText():
-            text = self.ui.textEdit.selectedText()
+        if(self.ui.lineEdit.hasFocus() and self.ui.lineEdit.text() != ''):
 
-        if(self.ui.lineEdit.text() != ''):
-           text = self.ui.lineEdit.text()
+            text = self.ui.lineEdit.text()
+
+        else:
+
+            if self.ui.textEdit.hasSelectedText():
+                text = self.ui.textEdit.selectedText()
+
         if(text != ''):
 
             self.ui.textEdit.findFirst(
@@ -85,7 +203,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     ##            )
 
     def searchNext(self):
-
         self.ui.textEdit.findNext()
 
     def new(self):
@@ -98,7 +215,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         if fileName != '':
             self.fileOpen(fileName)
 
-            
     def fileOpen(self, fileName):
         try:        
             self.fileName = fileName
@@ -158,13 +274,24 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         
     def run(self):
         command = 'python "{0}"'.format(self.fileName)
-        subprocess.Popen(command, shell=True)
-        
+        p = subprocess.Popen(command, shell=True)
+
+            
     def changeLexer(self, ext='.py'):
         lexs={
             '.py':Qsci.QsciLexerPython,
             '.html':Qsci.QsciLexerHTML,
-            '.cpp':Qsci.QsciLexerCPP
+            '.cpp':Qsci.QsciLexerCPP,
+            '.c':Qsci.QsciLexerCPP,
+            '.css':Qsci.QsciLexerCSS,
+            '.java':Qsci.QsciLexerJava,
+            '.js':Qsci.QsciLexerJavaScript,
+            '.json':Qsci.QsciLexerJavaScript,
+            '.pas':Qsci.QsciLexerPascal,
+            '.sql':Qsci.QsciLexerSQL,
+            '.xml':Qsci.QsciLexerXML,
+            '.ui':Qsci.QsciLexerXML,
+            '.bat':Qsci.QsciLexerBatch
         }
         try:
             self.lexer = lexs[ext]()
@@ -173,7 +300,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
                             ##QsciLexerBatch
                             ##QsciLexerCMake
                             ##QsciLexerCPP *
-                            ##QsciLexerCSS
+                            ##QsciLexerCSS *
                             ##QsciLexerCSharp
                             ##QsciLexerCustom
                             ##QsciLexerD
@@ -182,26 +309,26 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
                             ##QsciLexerFortran77
                             ##QsciLexerHTML *
                             ##QsciLexerIDL
-                            ##QsciLexerJava
-                            ##QsciLexerJavaScript
+                            ##QsciLexerJava *
+                            ##QsciLexerJavaScript *
                             ##QsciLexerLua
                             ##QsciLexerMakefile
                             ##QsciLexerMatlab
                             ##QsciLexerOctave
                             ##QsciLexerPOV
-                            ##QsciLexerPascal
+                            ##QsciLexerPascal *
                             ##QsciLexerPerl
                             ##QsciLexerPostScript
                             ##QsciLexerProperties
                             ##QsciLexerPython *
                             ##QsciLexerRuby
-                            ##QsciLexerSQL
+                            ##QsciLexerSQL *
                             ##QsciLexerSpice
                             ##QsciLexerTCL
                             ##QsciLexerTeX
                             ##QsciLexerVHDL
                             ##QsciLexerVerilog
-                            ##QsciLexerXML
+                            ##QsciLexerXML *
                             ##QsciLexerYAML
             api = Qsci.QsciAPIs(self.lexer)
             # Add autocompletion strings
@@ -236,7 +363,9 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.ui.textEdit.setAutoCompletionSource(Qsci.QsciScintilla.AcsAll)
         
 
-        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_SETHSCROLLBAR, 0)
+        #self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_SETHSCROLLBAR, 0)
+
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_SETINDICATORCURRENT, 0, 0) ####
         self.ui.textEdit.setBraceMatching(Qsci.QsciScintilla.SloppyBraceMatch)
         self.ui.textEdit.setCaretLineVisible(True)
         self.ui.textEdit.setIndentationWidth(4)

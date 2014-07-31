@@ -29,17 +29,23 @@
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QWidget" name="widget_2" native="true"/>
-       </item>
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Buscar:</string>
-         </property>
+        <widget class="QWidget" name="widgetBuscar" native="true">
+         <property name="visible">
+          <bool>false</bool>
+         </property>        
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>  Buscar:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEdit"/>
+          </item>
+         </layout>
         </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEdit"/>
        </item>
        <item>
         <spacer name="horizontalSpacer">
@@ -98,6 +104,7 @@
     <addaction name="actionPegar"/>
     <addaction name="actionSeleccionar_Todo"/>
     <addaction name="separator"/>
+    <addaction name="actionBuscar"/>
     <addaction name="actionBuscar_Seleccionado"/>
     <addaction name="actionBuscar_siguiente"/>
     <addaction name="actionEjecutar"/>
@@ -115,7 +122,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
    <property name="visible">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="floating">
     <bool>false</bool>
@@ -256,6 +263,9 @@
    <property name="text">
     <string>Panel Archivos</string>
    </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
   </action>
   <action name="actionBuscar_siguiente">
    <property name="text">
@@ -271,6 +281,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+F3</string>
+   </property>
+  </action>
+  <action name="actionBuscar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Buscar</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
  </widget>
@@ -348,18 +369,50 @@
    </hints>
   </connection>
   <connection>
+   <sender>actionBuscar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>widgetBuscar</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>406</x>
+     <y>751</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
    <sender>lineEdit</sender>
    <signal>returnPressed()</signal>
    <receiver>actionBuscar_Seleccionado</receiver>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>398</x>
-     <y>758</y>
+     <x>427</x>
+     <y>751</y>
     </hint>
     <hint type="destinationlabel">
+     <x>427</x>
+     <y>751</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionBuscar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineEdit</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>463</x>
+     <y>751</y>
     </hint>
    </hints>
   </connection>
