@@ -33,7 +33,8 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
        # set up User Interface (widgets, layout...)
 ##        self.ui.setupUi(self)
         self.highlightedBrackets = [0,0,0,0]
-        
+        self.highlightTags = False
+        self.tagsResaltados = []
         self.setupEditor()
         
         if self.fileName != '':
@@ -50,17 +51,23 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         QObject.connect(self.ui.actionBuscar_Seleccionado, SIGNAL("triggered()"), self.searchSelected) # signal/slot connection
         QObject.connect(self.ui.treeView,SIGNAL("doubleClicked(QModelIndex)"),self.openFromTree) # signal/slot connection
         QObject.connect(self.ui.textEdit,SIGNAL("textChanged()"),self.setUnsaved) # signal/slot connection
-        QObject.connect(self.ui.textEdit,SIGNAL("cursorPositionChanged(int, int)"),self.highlightTag) # signal/slot connection
+        QObject.connect(self.ui.textEdit,SIGNAL("cursorPositionChanged(int, int)"),self.onCursorPosition) # signal/slot connection
         
+##**********************************
 
-
-    def findMatchingClosingTag(self, lineNumber, text, tagName, closingBracket=0, level=0):
+    def findMatchingClosingTag(self, lineNumber, text, tagName, closingBracket=0, level=1):
         if lineNumber <= self.ui.textEdit.lines():
+            newLevel = level
             closeTag = '</'+tagName+'>'
-            found = text.find(closeTag, closingBracket+1 if closingBracket>0 else 0) 
+            found = text.find(closeTag, closingBracket+1 if closingBracket>0 else 0)
+            newLevel -= 1 if found >= 0 else 0
             openTag = '<'+tagName+' '
             other = text.find(openTag, closingBracket+1 if closingBracket>0 else 0)
-            newLevel = 0
+            if other>0:
+                closingBracketOther = self.findBracket(other, text, '>', '<', reverse=True);
+                if not self.is_tag_self_closing(text, closingBracketOther):
+                    newLevel += 1 if other < found or found < 0 else 0
+            print(tagName, lineNumber, found, other, newLevel)
             if newLevel == 0 and found > 0:
                 openingBracketInLine = found
                 closingBracketInLine = found + len(closeTag)
@@ -70,9 +77,8 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             else:
                 text = self.ui.textEdit.text(lineNumber+1)
                 self.findMatchingClosingTag(lineNumber+1, text, tagName, level=newLevel)
-                
-
-    def findBracket(self, position, index, text, searchedBracket, breakBracket, reverse=False):
+        
+    def findBracket(self, index, text, searchedBracket, breakBracket, reverse=False):
         foundBracket = -1
         if not reverse:
             posSearch = text.rfind(searchedBracket, 0, index)
@@ -114,11 +120,12 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICATORCLEARRANGE, rangeStart, rangeEnd+1); ####        
 
     def run_tag_highlighter(self, lineNumber, index):
-        position = self.ui.textEdit.positionFromLineIndex(lineNumber, index)
+        print('resaltando')
+##        position = self.ui.textEdit.positionFromLineIndex(lineNumber, index)
         lineText = self.ui.textEdit.text(lineNumber)
         
-        openingBracketInLine = self.findBracket(position, index, lineText, '<', '>');
-        closingBracketInLine = self.findBracket(position, index, lineText, '>', '<', reverse=True);
+        openingBracketInLine = self.findBracket(index, lineText, '<', '>');
+        closingBracketInLine = self.findBracket(index, lineText, '>', '<', reverse=True);
 
 ##        openingBracket = position - index + openingBracketInLine if openingBracketInLine != -1 else -1
 ##        closingBracket = position - index + closingBracketInLine if closingBracketInLine != -1 else -1
@@ -155,15 +162,135 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     def highlight_tag(self, openingBracket, closingBracket):
         self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETSTYLE, 0, Qsci.QsciScintilla.INDIC_STRAIGHTBOX) ####        
         self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETFORE, 0, 0xFF0000) ####        
-        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETALPHA, 0, 60) ####        
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETALPHA, 0, 25) ####        
         self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICATORFILLRANGE, openingBracket, closingBracket-openingBracket+1) ####        
 
+    def buscarTag(self, linea, index):
+        tag = None
+        lineText = self.ui.textEdit.text(linea)
+        inicio = self.findBracket(index, lineText, '<', '>');
+        fin = self.findBracket(index, lineText, '>', '<', reverse=True);        
+        if inicio>=0 and fin>=0:
+            isTagOpening = lineText[inicio+1] != '/'
+            isTagSelfClosing = isTagOpening and lineText[fin-1] == '/'
+            tagcontent = lineText[(inicio +(1 if isTagOpening else 2)) : fin].split()
+            if len(tagcontent)>0:
+                tag = {
+                        'linea':linea,
+                        'inicioEnLinea':inicio,
+                        'finEnLinea':fin,
+                        'inicio':self.ui.textEdit.positionFromLineIndex(linea, inicio),
+                        'fin':self.ui.textEdit.positionFromLineIndex(linea, fin),
+                        'apertura':isTagOpening,
+                        'cerrada': isTagSelfClosing,
+                        'tag': tagcontent[0]
+                }
+        return tag
 
-    def highlightTag(self, line, index):
-
-        self.run_tag_highlighter(line, index)##
-
+    def buscarTagCierre(self, tag, linea, desde=0, nivel=0):
+        tagC = None
+        if linea <= self.ui.textEdit.lines():
+            lineText = self.ui.textEdit.text(linea)
+            tagCierre = '</' + tag['tag'] + '>'
+            tagApertura1 = '<' + tag['tag'] + ' '
+            tagApertura2 = '<' + tag['tag'] + '>'
+            indexCierre = lineText.find(tagCierre, desde)
+            index = -1
+            indexApertura = -1
+            indexApertura1 = lineText.find(tagApertura1, desde)
+            if indexApertura1 >= 0:
+                indexApertura = indexApertura1
+            indexApertura2 = lineText.find(tagApertura2, desde)
+            if indexApertura2 >= 0:
+                indexApertura = indexApertura if indexApertura>=0 and indexApertura<indexApertura2 else indexApertura2
+            if indexCierre >=0:
+                index = indexCierre
+            if indexApertura>=0:
+                index = index if index>=0 and index<indexApertura else indexApertura
+            if index >= 0:
+                tagE = self.buscarTag(linea, index+1)
+                if not tagE['apertura']:
+                    if nivel == 0:
+                        tagC = tagE
+                    else:
+                        tagC = self.buscarTagCierre(tag, linea, tagE['finEnLinea'], nivel - 1)
+                else:
+                    tagC = self.buscarTagCierre(tag, linea, tagE['finEnLinea'], nivel + (0 if tagE['cerrada'] else 1))
+            else:
+                tagC = self.buscarTagCierre(tag, linea+1, nivel=nivel)
+        return tagC
+           
+    def buscarTagApertura(self, tag, linea, hasta=None, nivel=0):
+        tagC = None
         
+        if linea >= 0:
+            lineText = self.ui.textEdit.text(linea)
+            hasta = len(lineText) if hasta is None else hasta
+            tagCierre = '</' + tag['tag'] + '>'
+            tagApertura1 = '<' + tag['tag'] + ' '
+            tagApertura2 = '<' + tag['tag'] + '>'
+            
+            index = -1
+            indexCierre = lineText.find(tagCierre, 0, hasta)
+            indexApertura1 = lineText.find(tagApertura1, 0, hasta)
+            indexApertura2 = lineText.find(tagApertura2, 0, hasta)
+            indexApertura = max(indexApertura1, indexApertura2)
+                
+            if indexApertura >= 0:
+                index = max(indexApertura, indexCierre)
+            print(linea)
+            
+            if index >= 0:
+                tagE = self.buscarTag(linea, index+1)
+                if tagE['apertura']:
+                    if nivel == 0:
+                        tagC = tagE
+                    else:
+                        tagC = self.buscarTagApertura(tag, linea, tagE['inicioEnLinea'], nivel - (0 if tagE['cerrada'] else 1))
+                else:
+                    tagC = self.buscarTagApertura(tag, linea, tagE['inicioEnLinea'], nivel + 1)
+            else:
+                
+                tagC = self.buscarTagApertura(tag, linea-1, nivel=nivel)
+        return tagC
+                   
+    def buscarCompaniero(self, tag):
+        tagC = None
+        if not tag['cerrada']:
+            if tag['apertura']:
+                tagC = self.buscarTagCierre(tag, tag['linea'], tag['finEnLinea'])
+            else:
+                tagC = self.buscarTagApertura(tag, tag['linea'], tag['inicioEnLinea'])
+        return tagC
+        
+    def borrarTagsResaltados(self):
+        for tag in self.tagsResaltados:
+            self.clear_previous_highlighting(tag['inicio'], tag['fin'])
+            
+    def resaltarTags(self, tags):
+        self.borrarTagsResaltados()
+        for tag in tags:
+            self.highlight_tag(tag['inicio'], tag['fin'])
+            self.tagsResaltados.append(tag)
+        
+    def buscarYResaltarTags(self, linea, index):
+        tags = []
+        tag1 = self.buscarTag(linea, index)
+        if tag1 is not None:
+            tags.append(tag1)
+            tag2 = self.buscarCompaniero(tag1)
+            if tag2 is not None:
+                tags.append(tag2)
+            self.resaltarTags(tags)
+        else:
+            self.borrarTagsResaltados()
+##**********************************
+        
+    def onCursorPosition(self, line, index):
+        if self.highlightTags:
+##            self.run_tag_highlighter(line, index)##
+            self.buscarYResaltarTags(line, index)##
+
 
     def setUnsaved(self):
         title = ('<nuevo>' if self.fileName == '' else self.fileName) + ' - ' + self.uiTitle 
@@ -291,17 +418,20 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             '.sql':Qsci.QsciLexerSQL,
             '.xml':Qsci.QsciLexerXML,
             '.ui':Qsci.QsciLexerXML,
+            '.cs':Qsci.QsciLexerCSharp,
+            '.sh':Qsci.QsciLexerBash,
             '.bat':Qsci.QsciLexerBatch
         }
+        self.highlightTags = ext in ['.html', '.xml', '.ui']
         try:
             self.lexer = lexs[ext]()
                             ##QsciLexer
                             ##QsciLexerBash
-                            ##QsciLexerBatch
+                            ##QsciLexerBatch *
                             ##QsciLexerCMake
                             ##QsciLexerCPP *
                             ##QsciLexerCSS *
-                            ##QsciLexerCSharp
+                            ##QsciLexerCSharp *
                             ##QsciLexerCustom
                             ##QsciLexerD
                             ##QsciLexerDiff
