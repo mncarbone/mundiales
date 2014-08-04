@@ -32,7 +32,7 @@
         <widget class="QWidget" name="widgetBuscar" native="true">
          <property name="visible">
           <bool>false</bool>
-         </property>        
+         </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="label">
@@ -114,6 +114,10 @@
      <string>Ver</string>
     </property>
     <addaction name="actionPanel_Archivos"/>
+    <addaction name="actionGit_Gui"/>
+    <addaction name="separator"/>
+    <addaction name="actionZoom"/>
+    <addaction name="actionZoom_2"/>
    </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuEditar"/>
@@ -122,7 +126,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
    <property name="visible">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="floating">
     <bool>false</bool>
@@ -294,6 +298,21 @@
     <string>Ctrl+F</string>
    </property>
   </action>
+  <action name="actionGit_Gui">
+   <property name="text">
+    <string>Git Gui</string>
+   </property>
+  </action>
+  <action name="actionZoom">
+   <property name="text">
+    <string>Zoom +</string>
+   </property>
+  </action>
+  <action name="actionZoom_2">
+   <property name="text">
+    <string>Zoom -</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -395,8 +414,8 @@
      <y>751</y>
     </hint>
     <hint type="destinationlabel">
-     <x>427</x>
-     <y>751</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>
@@ -413,6 +432,38 @@
     <hint type="destinationlabel">
      <x>463</x>
      <y>751</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionZoom</sender>
+   <signal>triggered()</signal>
+   <receiver>textEdit</receiver>
+   <slot>zoomIn()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>581</x>
+     <y>378</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>378</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionZoom_2</sender>
+   <signal>triggered()</signal>
+   <receiver>textEdit</receiver>
+   <slot>zoomOut()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>581</x>
+     <y>378</y>
     </hint>
    </hints>
   </connection>

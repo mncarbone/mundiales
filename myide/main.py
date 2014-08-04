@@ -19,6 +19,16 @@ from PyQt4 import Qsci, QtCore, QtGui, uic
 
 #( Ui_MainWindow, QMainWindow ) = uic.loadUiType( 'ui/main.ui' )
 
+def wheelEvent(self, ev):
+            # Use ctrl+wheel to zoom in/out
+            if Qt.ControlModifier & ev.modifiers():
+                if ev.delta() > 0:
+                    self.zoomIn()
+                else:
+                    self.zoomOut()
+            else:
+                return super(Editor, self).wheelEvent(ev)
+            
 class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     
     
@@ -49,10 +59,16 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         QObject.connect(self.ui.actionGuardar_Como, SIGNAL("triggered()"),self.saveAs) # signal/slot connection
         QObject.connect(self.ui.actionBuscar_siguiente, SIGNAL("triggered()"),self.searchNext) # signal/slot connection
         QObject.connect(self.ui.actionBuscar_Seleccionado, SIGNAL("triggered()"), self.searchSelected) # signal/slot connection
+        QObject.connect(self.ui.actionGit_Gui, SIGNAL("triggered()"), self.openGitGui) # signal/slot connection
+
         QObject.connect(self.ui.treeView,SIGNAL("doubleClicked(QModelIndex)"),self.openFromTree) # signal/slot connection
         QObject.connect(self.ui.textEdit,SIGNAL("textChanged()"),self.setUnsaved) # signal/slot connection
         QObject.connect(self.ui.textEdit,SIGNAL("cursorPositionChanged(int, int)"),self.onCursorPosition) # signal/slot connection
-        
+        QObject.connect(self.ui.textEdit,SIGNAL("SCN_DOUBLECLICK(int, int, int)"),self.zoomIn) # signal/slot connection
+
+        self.ui.textEdit.wheelEvent = wheelEvent
+    def zoomIn(self, a,b,c):
+        self.ui.textEdit.zoomIn()
 ##**********************************
 
     def findMatchingClosingTag(self, lineNumber, text, tagName, closingBracket=0, level=1):
@@ -236,21 +252,18 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             indexApertura2 = lineText.find(tagApertura2, 0, hasta)
             indexApertura = max(indexApertura1, indexApertura2)
                 
-            if indexApertura >= 0:
-                index = max(indexApertura, indexCierre)
-            print(linea)
-            
+            index = max(indexApertura, indexCierre)
+                
             if index >= 0:
                 tagE = self.buscarTag(linea, index+1)
-                if tagE['apertura']:
-                    if nivel == 0:
+                if tagE['apertura'] :
+                    if nivel == 0 and not tagE['cerrada']:
                         tagC = tagE
                     else:
                         tagC = self.buscarTagApertura(tag, linea, tagE['inicioEnLinea'], nivel - (0 if tagE['cerrada'] else 1))
                 else:
                     tagC = self.buscarTagApertura(tag, linea, tagE['inicioEnLinea'], nivel + 1)
             else:
-                
                 tagC = self.buscarTagApertura(tag, linea-1, nivel=nivel)
         return tagC
                    
@@ -329,6 +342,14 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     ##                posix=False  #opt
     ##            )
 
+    def openGitGui(self):
+        if self.lastDir!= '':
+            command = '"C:\\Archivos de programa\\Git\\bin\\wish.exe" "C:\\Archivos de programa\\Git\libexec\\git-core\\git-gui"'
+            commandLine = 'cd "{0}" & {1}'.format(self.lastDir.replace('/', '\\'), command)
+            p = subprocess.Popen(command,shell=True)
+            print(commandLine)
+        
+
     def searchNext(self):
         self.ui.textEdit.findNext()
 
@@ -346,7 +367,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         try:        
             self.fileName = fileName
             self.lastDir = os.path.dirname(self.fileName)
-
             self.changeFolder(self.lastDir)
             file = open(self.fileName, 'r')
             contents = file.read()
@@ -354,7 +374,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             self.changeLexer(ext.lower())
             self.ui.textEdit.setText(contents)
             file.close()
-
             self.setSaved()
         except:
             pass
@@ -362,11 +381,8 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     def fileSave(self, fileName):
         try:
             self.fileName = fileName
-
             self.lastDir = os.path.dirname(self.fileName)
-
             self.changeFolder(self.lastDir)
-
             file = open(self.fileName, 'w')
             file.write(self.ui.textEdit.text())            
             file.close()
@@ -400,11 +416,33 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             self.fileSave(self.fileName)
         
     def run(self):
-        command = 'python "{0}"'.format(self.fileName)
-        p = subprocess.Popen(command, shell=True)
+
+        commands={
+            '.py':'idle',
+            '.html':'"C:\\archivos de programa\\mozilla firefox\\firefox.exe"',
+#            '.cpp':Qsci.QsciLexerCPP,
+#            '.c':Qsci.QsciLexerCPP,
+#            '.css':Qsci.QsciLexerCSS,
+#            '.java':Qsci.QsciLexerJava,
+#            '.js':Qsci.QsciLexerJavaScript,
+#            '.json':Qsci.QsciLexerJavaScript,
+#            '.pas':Qsci.QsciLexerPascal,
+#            '.sql':Qsci.QsciLexerSQL,
+#            '.xml':Qsci.QsciLexerXML,
+            '.ui':'"D:\\Documents and Settings\\MCarbone\\Mis documentos\\new\\Portable Python 3.2.5.1\\QtDesigner-Portable.exe"'
+#            '.cs':Qsci.QsciLexerCSharp,
+#            '.sh':Qsci.QsciLexerBash,
+#            '.bat':Qsci.QsciLexerBatch
+
+        }        
+        command = commands[self.ext]
+        commandLine = '{0} "{1}"'.format(command, self.fileName)#.replace('/', '\\'))
+        p = subprocess.Popen(commandLine, shell=True)
 
             
     def changeLexer(self, ext='.py'):
+
+        self.ext = ext
         lexs={
             '.py':Qsci.QsciLexerPython,
             '.html':Qsci.QsciLexerHTML,
