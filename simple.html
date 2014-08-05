@@ -15,9 +15,11 @@
 		<script type="text/javascript" charset="utf-8" src="cordova.js"></script>
 		<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
 		<script type="text/javascript" src="js/jquery.mobile-1.4.2.min.js"></script>	
-        <script type="text/javascript">
+        <script type="text/javascript">
+
         
-            Class = window;
+            Class = window;
+
             
             function parseIf(el, obj){
                 var result = '';
@@ -95,7 +97,11 @@
                 Def.agregarTarea = function(nombreTarea){
                     this.tareas.push(new Tarea(nombreTarea));
                 }
-                
+                Def.cantar = function(cancion){
+
+                    return 'lalalala'+ cancion+ ' ooo...'
+
+                }
             persona = new Persona('Juan', 15);
             persona.agregarCosa('tieneCasa', true)
             persona.agregarTarea('lavar');
@@ -157,7 +163,7 @@
 	
 		<div data-role="page" id="home">
 			<div data-role="header" data-position="fixed" data-theme="a">
-				<h1>NUMEROS</h1>
+				<h1>INICIO</h1>
 			</div>
 
 			<ol data-role="listview" data-list="personas" data-inset="true" >
@@ -165,6 +171,8 @@
 			</ol>
 			<button onclick="agregarPersona()">Agregar Persona</button>
 		</div>	
+
+        
 		<div data-role="page" id="nueva">
 			<div data-role="header" data-position="fixed" data-theme="a">
 				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
@@ -176,6 +184,8 @@
 			</ul>
 			<button onclick="agregarAuto()">Agregar Auto</button>
 		</div>
+
+        
 		<div data-role="page" id="detalle">
 			<div data-role="header" data-position="fixed" data-theme="a">
 				<a data-role="button" data-rel="back" data-icon="left" class="ui-btn-left ui-alt-icon ui-nodisc-icon ui-btn ui-icon-carat-l ui-btn-icon-notext ui-corner-all"></a>
@@ -184,21 +194,26 @@
 
 			<ul data-role="listview" data-inset="true" data-object="personas[n]">
 				<li>Nombre: {{nombre}}</li>
-				<li>Edad: {{edad}}</li>
-				<li>texto: {{texto}}</li>
+				<li>Edad: {{edad}} para {{proxEdad()}}</li>
+				<li>texto: {{edad}} {{texto}} </li>
+
+				<li>Dice: {{ cantar(25) }} </li>
 			</ul>
 		</div>
+
+        
 		<!-- Footer Nav -->
 		<div data-role="footer" data-position="fixed" data-theme="a" data-tap-toggle="false">
 			<div data-role="navbar">
 				<ul>
 					<li><a href="#home" data-icon="home">Home</a></li>
 					<li><a href="#nueva" data-icon="star">Nueva</a></li>
-					<li><a href="#detalle" data-icon="hand">Detalle</a></li>
+					<li><a href="#detalle" data-icon="bullets">Detalle</a></li>
 				</ul>
 			</div>
 		</div>		
-		<script type="text/javascript">		
+		<script type="text/javascript">
+
 			$(function() {
 				$( "[data-role='navbar']" ).navbar();
 				$( "[data-role='footer']" ).toolbar();
@@ -215,6 +230,23 @@
                     }
                 }, false);
 				render()
+                console.log('Hola Mundis')
+                
+				$.ajaxSetup({ cache: false });
+
+				var urlApuestas = 'http://jsonblob.com/api/jsonBlob/53ad7745e4b07a1c9f44e5a6';
+
+				$.getJSON(urlApuestas, function(data) {
+
+					alert(data)
+
+				})
+
+				.fail(function( jqxhr, textStatus, error ) {
+
+					alert( "Error de conexion (apuestas).");
+
+				});               
         	});	
 		</script>		
 	</body>

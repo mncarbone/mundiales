@@ -13,22 +13,15 @@ import sys, os, subprocess
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from PyQt4 import Qsci, QtCore, QtGui, uic
+
+from PyQt4.QtNetwork import *
+from PyQt4 import Qsci, QtCore, QtGui, uic, QtWebKit
 
 #1#from ui.main import Ui_MainWindow
 
 #( Ui_MainWindow, QMainWindow ) = uic.loadUiType( 'ui/main.ui' )
 
-def wheelEvent(self, ev):
-            # Use ctrl+wheel to zoom in/out
-            if Qt.ControlModifier & ev.modifiers():
-                if ev.delta() > 0:
-                    self.zoomIn()
-                else:
-                    self.zoomOut()
-            else:
-                return super(Editor, self).wheelEvent(ev)
-            
+        
 class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     
     
@@ -49,26 +42,46 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         
         if self.fileName != '':
             self.fileOpen(self.fileName)
-
+            
+        self.connectEvents()
+        
+    def wheelEvent(self, ev):
+        try:
+            # Use ctrl+wheel to zoom in/out
+            if Qt.ControlModifier & ev.modifiers():
+                if ev.delta() > 0:
+                    self.ui.textEdit.zoomIn()
+                else:
+                    self.ui.textEdit.zoomOut()
+            else:
+                return Qsci.QsciScintilla.wheelEvent(self.ui.textEdit,ev)
+##                self.ui.textEdit.wheelEventScroll(ev)
+        finally :
+            pass
+        
+    def console(self, msg, line, source):
+        print ('%s line %d: %s' % (source, line, msg))
+        
+    def connectEvents(self):
         # custom slots connections
 
-        QObject.connect(self.ui.pushButton, SIGNAL("released()"),self.run) # signal/slot connection
-        QObject.connect(self.ui.actionNuevo, SIGNAL("triggered()"),self.new) # signal/slot connection
-        QObject.connect(self.ui.actionAbrir, SIGNAL("triggered()"),self.open) # signal/slot connection
-        QObject.connect(self.ui.actionGuardar, SIGNAL("triggered()"),self.save) # signal/slot connection
-        QObject.connect(self.ui.actionGuardar_Como, SIGNAL("triggered()"),self.saveAs) # signal/slot connection
-        QObject.connect(self.ui.actionBuscar_siguiente, SIGNAL("triggered()"),self.searchNext) # signal/slot connection
-        QObject.connect(self.ui.actionBuscar_Seleccionado, SIGNAL("triggered()"), self.searchSelected) # signal/slot connection
-        QObject.connect(self.ui.actionGit_Gui, SIGNAL("triggered()"), self.openGitGui) # signal/slot connection
-
-        QObject.connect(self.ui.treeView,SIGNAL("doubleClicked(QModelIndex)"),self.openFromTree) # signal/slot connection
-        QObject.connect(self.ui.textEdit,SIGNAL("textChanged()"),self.setUnsaved) # signal/slot connection
-        QObject.connect(self.ui.textEdit,SIGNAL("cursorPositionChanged(int, int)"),self.onCursorPosition) # signal/slot connection
-        QObject.connect(self.ui.textEdit,SIGNAL("SCN_DOUBLECLICK(int, int, int)"),self.zoomIn) # signal/slot connection
-
-        self.ui.textEdit.wheelEvent = wheelEvent
-    def zoomIn(self, a,b,c):
-        self.ui.textEdit.zoomIn()
+        self.ui.actionNuevo.triggered.connect(self.new) # signal/slot connection
+        self.ui.actionAbrir.triggered.connect(self.open) # signal/slot connection
+        self.ui.actionGuardar.triggered.connect(self.save) # signal/slot connection
+        self.ui.actionGuardar_Como.triggered.connect(self.saveAs) # signal/slot connection
+        self.ui.actionBuscar_siguiente.triggered.connect(self.searchNext) # signal/slot connection
+        self.ui.actionBuscar_Seleccionado.triggered.connect( self.searchSelected) # signal/slot connection
+        self.ui.actionGit_Gui.triggered.connect( self.openGitGui) # signal/slot connection
+        self.ui.pushButton.released.connect(self.run) # signal/slot connection
+        self.ui.treeView.doubleClicked.connect(self.openFromTree) # signal/slot connection
+        self.ui.textEdit.textChanged.connect(self.setUnsaved) # signal/slot connection
+        self.ui.textEdit.cursorPositionChanged.connect(self.onCursorPosition)
+        self.ui.textEdit.wheelEvent = MainWindow.wheelEvent.__get__(self, self.__class__)
+        page = QtWebKit.QWebPage()
+        page.javaScriptConsoleMessage = MainWindow.console.__get__(self, self.__class__)
+        self.ui.webView.setPage(page)
+        
+        
 ##**********************************
 
     def findMatchingClosingTag(self, lineNumber, text, tagName, closingBracket=0, level=1):
@@ -392,17 +405,13 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         
     def open(self):
-
         fileName = QFileDialog.getOpenFileName(self.ui, "Open File",self.lastDir,"Files (*.*)");
-
         if fileName != '':
-
             self.fileOpen(fileName)
         
     def saveAs(self):
         fileName = QFileDialog.getSaveFileName(self.ui, "Save File",self.lastDir,"Files (*.*)");
         if fileName != '':
-
             self.fileSave(fileName)
         
     def save(self):
@@ -410,15 +419,13 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             fileName = QFileDialog.getSaveFileName(self.ui, "Save File",'',"Files (*.*)");
         else:
             fileName = self.fileName
-
         if fileName != '':
-
             self.fileSave(self.fileName)
         
     def run(self):
 
         commands={
-            '.py':'idle',
+            '.py':'python',
             '.html':'"C:\\archivos de programa\\mozilla firefox\\firefox.exe"',
 #            '.cpp':Qsci.QsciLexerCPP,
 #            '.c':Qsci.QsciLexerCPP,
@@ -436,7 +443,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         }        
         command = commands[self.ext]
-        commandLine = '{0} "{1}"'.format(command, self.fileName)#.replace('/', '\\'))
+        commandLine = '{0} "{1}"'.format(command, self.fileName.replace('/', '\\'))
         p = subprocess.Popen(commandLine, shell=True)
 
             
@@ -461,6 +468,9 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             '.bat':Qsci.QsciLexerBatch
         }
         self.highlightTags = ext in ['.html', '.xml', '.ui']
+
+        if ext == '.html':
+            self.ui.webView.load(QUrl.fromLocalFile(self.fileName))
         try:
             self.lexer = lexs[ext]()
                             ##QsciLexer
@@ -590,6 +600,10 @@ def main(argv):
     # create Qt application
     app = QApplication(argv,True)
 
+##    proxy = QNetworkProxy(QNetworkProxy.HttpProxy, PROXY_URL, 8080)
+##    QNetworkProxy.setApplicationProxy(proxy)
+
+    
     # create main window
     file = argv[1] if len(argv)>1 else ''
     wnd = MainWindow(file) # classname
