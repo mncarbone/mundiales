@@ -60,6 +60,34 @@
         </widget>
        </item>
        <item>
+        <widget class="QWidget" name="widgetFuente" native="true">
+         <property name="visible">
+          <bool>false</bool>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Tipografía</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFontComboBox" name="fontComboBox">
+            <property name="fontFilters">
+             <set>QFontComboBox::MonospacedFonts</set>
+            </property>
+            <property name="currentFont">
+             <font>
+              <family>Monaco</family>
+             </font>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -131,6 +159,7 @@
     <addaction name="separator"/>
     <addaction name="actionZoom"/>
     <addaction name="actionZoom_2"/>
+    <addaction name="actionTipograf_a"/>
    </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuEditar"/>
@@ -382,6 +411,11 @@
     <string>F7</string>
    </property>
   </action>
+  <action name="actionTipograf_a">
+   <property name="text">
+    <string>Tipografía</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -570,6 +604,22 @@
     <hint type="destinationlabel">
      <x>-1</x>
      <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionTipograf_a</sender>
+   <signal>triggered()</signal>
+   <receiver>widgetFuente</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>191</x>
+     <y>751</y>
     </hint>
    </hints>
   </connection>

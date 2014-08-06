@@ -76,6 +76,8 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.ui.treeView.doubleClicked.connect(self.openFromTree) # signal/slot connection
         self.ui.textEdit.textChanged.connect(self.setUnsaved) # signal/slot connection
         self.ui.textEdit.cursorPositionChanged.connect(self.onCursorPosition)
+        self.ui.fontComboBox.editTextChanged.connect(self.changeFont)
+
         self.ui.textEdit.wheelEvent = MainWindow.wheelEvent.__get__(self, self.__class__)
         page = QtWebKit.QWebPage()
         page.javaScriptConsoleMessage = MainWindow.console.__get__(self, self.__class__)
@@ -84,6 +86,10 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         
 ##**********************************
 
+    def changeFont(self, font):
+        self.font.setFamily(font)
+        self.lexer.setFont(self.font)
+        
     def findMatchingClosingTag(self, lineNumber, text, tagName, closingBracket=0, level=1):
         if lineNumber <= self.ui.textEdit.lines():
             newLevel = level
@@ -96,7 +102,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
                 closingBracketOther = self.findBracket(other, text, '>', '<', reverse=True);
                 if not self.is_tag_self_closing(text, closingBracketOther):
                     newLevel += 1 if other < found or found < 0 else 0
-            print(tagName, lineNumber, found, other, newLevel)
             if newLevel == 0 and found > 0:
                 openingBracketInLine = found
                 closingBracketInLine = found + len(closeTag)
@@ -149,7 +154,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICATORCLEARRANGE, rangeStart, rangeEnd+1); ####        
 
     def run_tag_highlighter(self, lineNumber, index):
-        print('resaltando')
 ##        position = self.ui.textEdit.positionFromLineIndex(lineNumber, index)
         lineText = self.ui.textEdit.text(lineNumber)
         
@@ -189,10 +193,10 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         
     def highlight_tag(self, openingBracket, closingBracket):
-        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETSTYLE, 0, Qsci.QsciScintilla.INDIC_STRAIGHTBOX) ####        
-        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETFORE, 0, 0xFF0000) ####        
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETFORE,  0, 0xFF0000) ####        
         self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETALPHA, 0, 25) ####        
-        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICATORFILLRANGE, openingBracket, closingBracket-openingBracket+1) ####        
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICATORFILLRANGE, openingBracket, closingBracket-openingBracket+1) ####
+        self.ui.textEdit.SendScintilla(Qsci.QsciScintilla.SCI_INDICSETSTYLE, 0, Qsci.QsciScintilla.INDIC_STRAIGHTBOX) ####        
 
     def buscarTag(self, linea, index):
         tag = None
@@ -314,6 +318,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         
     def onCursorPosition(self, line, index):
         if self.highlightTags:
+            #self.highlight_tag(0, 10)
 ##            self.run_tag_highlighter(line, index)##
             self.buscarYResaltarTags(line, index)##
 
@@ -530,9 +535,9 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
        
         # Create an API for us to populate with our autocomplete terms
         self.font = QFont()
-        self.font.setFamily('Inconsolata')
+        self.font.setFamily('Monaco')
         self.font.setFixedPitch(True)
-        self.font.setPointSize(12)
+        self.font.setPointSize(10)
         self.ui.textEdit.setFont(self.font)
         self.ui.textEdit.setMarginsFont(self.font)
         
@@ -547,7 +552,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.ui.textEdit.setBraceMatching(Qsci.QsciScintilla.SloppyBraceMatch)
         self.ui.textEdit.setCaretLineVisible(True)
         self.ui.textEdit.setIndentationWidth(4)
-        self.ui.textEdit.setTabWidth(4)
+        self.ui.textEdit.setTabWidth(1)
         self.ui.textEdit.setIndentationsUseTabs(False)
         self.ui.textEdit.setAutoIndent(True)
         self.ui.textEdit.setCaretLineBackgroundColor(QtGui.QColor("#f0f0ff"))
