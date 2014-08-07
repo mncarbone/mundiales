@@ -160,10 +160,18 @@
     <addaction name="actionZoom"/>
     <addaction name="actionZoom_2"/>
     <addaction name="actionTipograf_a"/>
+    <addaction name="actionUtf_8_latin1"/>
+   </widget>
+   <widget class="QMenu" name="menuAyuda">
+    <property name="title">
+     <string>Ayuda</string>
+    </property>
+    <addaction name="actionAcerca_de"/>
    </widget>
    <addaction name="menuArchivo"/>
    <addaction name="menuEditar"/>
    <addaction name="menuVer"/>
+   <addaction name="menuAyuda"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
@@ -248,7 +256,40 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonIconOnly</enum>
+   </property>
+   <property name="floatable">
+    <bool>true</bool>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNuevo"/>
+   <addaction name="actionAbrir"/>
+   <addaction name="actionGuardar"/>
+   <addaction name="separator"/>
+   <addaction name="actionDeshacer"/>
+   <addaction name="actionRehacer"/>
+   <addaction name="separator"/>
+   <addaction name="actionCortar"/>
+   <addaction name="actionCopiar"/>
+   <addaction name="actionPegar"/>
+   <addaction name="separator"/>
+   <addaction name="actionEjecutar"/>
+  </widget>
   <action name="actionNuevo">
+   <property name="icon">
+    <iconset>
+     <normaloff>S:/personal/img/iconos/famfam/page_add.png</normaloff>S:/personal/img/iconos/famfam/page_add.png</iconset>
+   </property>
    <property name="text">
     <string>Nuevo</string>
    </property>
@@ -257,6 +298,10 @@
    </property>
   </action>
   <action name="actionSalir">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/cross.png</normaloff>famfam/cross.png</iconset>
+   </property>
    <property name="text">
     <string>Salir</string>
    </property>
@@ -265,6 +310,10 @@
    </property>
   </action>
   <action name="actionAbrir">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/folder_page.png</normaloff>famfam/folder_page.png</iconset>
+   </property>
    <property name="text">
     <string>Abrir</string>
    </property>
@@ -273,6 +322,10 @@
    </property>
   </action>
   <action name="actionGuardar">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/disk.png</normaloff>famfam/disk.png</iconset>
+   </property>
    <property name="text">
     <string>Guardar</string>
    </property>
@@ -281,6 +334,10 @@
    </property>
   </action>
   <action name="actionGuardar_Como">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/disk.png</normaloff>famfam/disk.png</iconset>
+   </property>
    <property name="text">
     <string>Guardar Como</string>
    </property>
@@ -289,6 +346,10 @@
    </property>
   </action>
   <action name="actionDeshacer">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/arrow_undo.png</normaloff>famfam/arrow_undo.png</iconset>
+   </property>
    <property name="text">
     <string>Deshacer</string>
    </property>
@@ -297,6 +358,10 @@
    </property>
   </action>
   <action name="actionRehacer">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/arrow_redo.png</normaloff>famfam/arrow_redo.png</iconset>
+   </property>
    <property name="text">
     <string>Rehacer</string>
    </property>
@@ -305,6 +370,10 @@
    </property>
   </action>
   <action name="actionCortar">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/cut.png</normaloff>famfam/cut.png</iconset>
+   </property>
    <property name="text">
     <string>Cortar</string>
    </property>
@@ -313,6 +382,10 @@
    </property>
   </action>
   <action name="actionCopiar">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/page_copy.png</normaloff>famfam/page_copy.png</iconset>
+   </property>
    <property name="text">
     <string>Copiar</string>
    </property>
@@ -321,6 +394,10 @@
    </property>
   </action>
   <action name="actionPegar">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/paste_plain.png</normaloff>famfam/paste_plain.png</iconset>
+   </property>
    <property name="text">
     <string>Pegar</string>
    </property>
@@ -337,6 +414,10 @@
    </property>
   </action>
   <action name="actionEjecutar">
+   <property name="icon">
+    <iconset>
+     <normaloff>famfam/application_go.png</normaloff>famfam/application_go.png</iconset>
+   </property>
    <property name="text">
     <string>Ejecutar</string>
    </property>
@@ -414,6 +495,19 @@
   <action name="actionTipograf_a">
    <property name="text">
     <string>Tipografía</string>
+   </property>
+  </action>
+  <action name="actionAcerca_de">
+   <property name="text">
+    <string>Acerca de ...</string>
+   </property>
+  </action>
+  <action name="actionUtf_8_latin1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>UTF-8/Latin1</string>
    </property>
   </action>
  </widget>
@@ -620,6 +714,54 @@
     <hint type="destinationlabel">
      <x>191</x>
      <y>751</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDeshacer</sender>
+   <signal>triggered()</signal>
+   <receiver>textEdit</receiver>
+   <slot>undo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>395</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionRehacer</sender>
+   <signal>triggered()</signal>
+   <receiver>textEdit</receiver>
+   <slot>redo()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>395</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionUtf_8_latin1</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>textEdit</receiver>
+   <slot>setUtf8(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>395</y>
     </hint>
    </hints>
   </connection>

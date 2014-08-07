@@ -196,8 +196,11 @@
 				<li>Nombre: {{nombre}}</li>
 				<li>Edad: {{edad}} para {{proxEdad()}}</li>
 				<li>texto: {{edad}} {{texto}} </li>
-
-				<li>Dice: {{ cantar(25) }} </li>
+				<li>Dice: {{ cantar(25) }} </li>
+    <li data-role="list-divider">Tareas</li>
+			</ul>
+			<ul data-role="listview" data-list="personas[n].tareas">   
+    <li>{{ nombre }} </li>
 			</ul>
 		</div>
 

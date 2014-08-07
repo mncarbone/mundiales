@@ -1,0 +1,89 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Loco Demo\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: Wed Jun 04 2014 14:08:01 GMT-0300\n"
+"PO-Revision-Date: Wed Jun 04 2014 14:59:15 GMT-0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: Spanish\n"
+"Plural-Forms: nplurals=2; plural=n!=1\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Loco-Source-Locale: es_ES\n"
+"X-Loco-Target-Locale: es_ES\n"
+"X-Generator: Loco - https://localise.biz/"
+
+msgid "New..."
+msgstr "Nuevo..."
+
+msgid "Open..."
+msgstr "Abrir..."
+
+msgid "Quit"
+msgstr "Salir"
+
+msgid "View"
+msgstr "Ver"
+
+msgid "Help"
+msgstr "Ayuda"
+
+msgid "SQL by SQLite..."
+msgstr "SQL en SQLite..."
+
+msgid "About..."
+msgstr "Acerca de..."
+
+msgid "Open Data Base..."
+msgstr "Abrir Base de Datos..."
+
+msgid "Run"
+msgstr "Ejecutar"
+
+msgid "Result"
+msgstr "Resultado"
+
+msgid "New Table"
+msgstr "Nueva Tabla"
+
+msgid "Add Column"
+msgstr "Agregar Columna"
+
+msgid "Rename Table"
+msgstr "Renombrar Tabla"
+
+msgid "Drop Table"
+msgstr "Eliminar Tabla"
+
+msgid "Tables"
+msgstr "Tablas"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Unknown command: "
+msgstr "Comando desconocido:"
+
+msgid "Data base files"
+msgstr "Archivos de Bases de Datos"
+
+msgid "All files"
+msgstr "Todos los archivos"
+
+msgid "Result: OK"
+msgstr "Resultado: OK"
+
+msgid "File"
+msgstr "Archivo"
+
+msgid "Tables at %s"
+msgstr "Tablas a la %s"
+
+msgid "right"
+msgstr "derecha"
+
+msgid "left"
+msgstr "izquierda"
