@@ -88,8 +88,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
 ##**********************************
     def about(self):
-
-        
         QMessageBox.about(self, "Acerca de MyEditor", "MyEditor\nDesarrollado por:\n Martín Nicolás Carbone\nAgosto 2014")
 
     def changeFont(self, font):
@@ -404,7 +402,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             self.changeLexer(ext.lower())
             self.ui.textEdit.setText(contents)
 
-            print('isUtf8:',self.ui.textEdit.isUtf8())
             file.close()
             self.setSaved()
         except:
@@ -463,28 +460,42 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         }
         command = commands[self.ext]
         commandLine = '{0} "{1}"'.format(command, self.fileName.replace('/', '\\'))
-        p = subprocess.Popen(commandLine, shell=True)
+##        p = subprocess.Popen(commandLine, shell=True)
+        import code
+        c = code.InteractiveConsole()
+        c.write=lambda x:self.ui.textEdit.setText(x)
+        s = """
+z = 0
+print('eggs')
+"""
+
+        
+        s = self.ui.textEdit.text()
+        print(s)
+        c.runsource(s, filename='MIARCHIVO', symbol="single")
+        c.showsyntaxerror()
+        c.showtraceback()
 
 
     def changeLexer(self, ext='.py'):
 
         self.ext = ext
         lexs={
-            '.py':Qsci.QsciLexerPython,
-            '.html':Qsci.QsciLexerHTML,
-            '.cpp':Qsci.QsciLexerCPP,
-            '.c':Qsci.QsciLexerCPP,
-            '.css':Qsci.QsciLexerCSS,
-            '.java':Qsci.QsciLexerJava,
-            '.js':Qsci.QsciLexerJavaScript,
-            '.json':Qsci.QsciLexerJavaScript,
-            '.pas':Qsci.QsciLexerPascal,
-            '.sql':Qsci.QsciLexerSQL,
-            '.xml':Qsci.QsciLexerXML,
-            '.ui':Qsci.QsciLexerXML,
-            '.cs':Qsci.QsciLexerCSharp,
-            '.sh':Qsci.QsciLexerBash,
-            '.bat':Qsci.QsciLexerBatch
+            '.py': Qsci.QsciLexerPython,
+            '.html': Qsci.QsciLexerHTML,
+            '.cpp': Qsci.QsciLexerCPP,
+            '.c': Qsci.QsciLexerCPP,
+            '.css': Qsci.QsciLexerCSS,
+            '.java': Qsci.QsciLexerJava,
+            '.js': Qsci.QsciLexerJavaScript,
+            '.json': Qsci.QsciLexerJavaScript,
+            '.pas': Qsci.QsciLexerPascal,
+            '.sql': Qsci.QsciLexerSQL,
+            '.xml': Qsci.QsciLexerXML,
+            '.ui': Qsci.QsciLexerXML,
+            '.cs': Qsci.QsciLexerCSharp,
+            '.sh': Qsci.QsciLexerBash,
+            '.bat': Qsci.QsciLexerBatch
         }
         self.highlightTags = ext in ['.html', '.xml', '.ui']
 
