@@ -458,23 +458,29 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 #            '.bat':Qsci.QsciLexerBatch
 
         }
-        command = commands[self.ext]
-        commandLine = '{0} "{1}"'.format(command, self.fileName.replace('/', '\\'))
-##        p = subprocess.Popen(commandLine, shell=True)
-        import code
-        c = code.InteractiveConsole()
-        c.write=lambda x:self.ui.textEdit.setText(x)
-        s = """
-z = 0
-print('eggs')
-"""
-
         
-        s = self.ui.textEdit.text()
-        print(s)
-        c.runsource(s, filename='MIARCHIVO', symbol="single")
-        c.showsyntaxerror()
-        c.showtraceback()
+        command = commands[self.ext]
+        file = self.fileName.replace('/', '\\')
+        idlePath = "D:\\Documents and Settings\\MCarbone\\Mis documentos\\new\\Portable Python 3.2.5.1\\App\\Lib\\idlelib\\idle.py"
+##        file = 'otro.py'
+        
+
+        commandLine = '{0} "{2}" -r "{1}"'.format(command, file, idlePath)
+##        subprocess.Popen(['cmd', '/K', command+' '+file+''])
+        p = subprocess.Popen(commandLine, shell=True)
+##        import code
+##        c = code.InteractiveConsole()
+##        c.write=lambda x:self.ui.textEdit.setText(x)
+##        s = """
+##print('eggs1')
+##print('eggs2')"""
+##
+##        
+##        s = self.ui.textEdit.text()
+####        print(s)
+##        c.runcode(s)#, filename='MIARCHIVO', symbol="single")
+##        c.showsyntaxerror()
+##        c.showtraceback()
 
 
     def changeLexer(self, ext='.py'):
@@ -647,5 +653,5 @@ def main(argv):
     # Start the app up
     sys.exit(app.exec_())
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main(sys.argv)
