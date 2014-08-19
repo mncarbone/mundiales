@@ -29,21 +29,55 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         QMainWindow.__init__(self)
 ##        self.ui = Ui_MainWindow()
+
         self.ui = uic.loadUi(os.path.dirname(os.path.realpath(sys.argv[0]))+"/main.ui", self)
+        self.settingsUi = uic.loadUi(os.path.dirname(os.path.realpath(sys.argv[0]))+"/config.ui")
+
         self.uiTitle = self.ui.windowTitle()
         self.fileName = file
         self.lastDir = os.path.dirname(self.fileName)
-       # set up User Interface (widgets, layout...)
-##        self.ui.setupUi(self)
         self.highlightedBrackets = [0,0,0,0]
         self.highlightTags = False
         self.tagsResaltados = []
+        self.readSettings()
         self.setupEditor()
-
         if self.fileName != '':
             self.fileOpen(self.fileName)
-
         self.connectEvents()
+
+    def readSettings(self):
+        self.settings = QSettings('MNC','my_editor')
+        self.pythonPath = 'python'
+        self.idlePath = ''
+        self.designerPath = ''
+        self.browserPath = ''
+
+        self.fontFamily='Monaco'
+        self.gitPath = '"C:\\Archivos de programa\\Git\\bin\\wish.exe" "C:\\Archivos de programa\\Git\libexec\\git-core\\git-gui"'
+        if self.settings.value('file_open') is not None:
+            self.fileOpen(self.settings.value('file_open'))
+        if self.settings.value('font_family') is not None:
+            self.fontFamily=self.settings.value('font_family')
+        self.loadPaths()
+
+
+
+    def loadPaths(self):
+        if self.settings.value('python_path') is not None:
+            self.pythonPath = self.settings.value('python_path')
+
+        if self.settings.value('idle_path') is not None:
+            self.idlePath = self.settings.value('idle_path')
+
+        if self.settings.value('designer_path') is not None:
+            self.designerPath = self.settings.value('designer_path')
+
+        if self.settings.value('browser_path') is not None:
+            self.browserPath = self.settings.value('browser_path')
+
+        if self.settings.value('git_path') is not None:
+            self.gitPath = self.settings.value('git_path')
+
 
     def wheelEvent(self, ev):
         try:
@@ -74,25 +108,59 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.ui.actionBuscar_siguiente.triggered.connect(self.searchNext) # signal/slot connection
         self.ui.actionBuscar_Seleccionado.triggered.connect( self.searchSelected) # signal/slot connection
         self.ui.actionGit_Gui.triggered.connect( self.openGitGui) # signal/slot connection
+        self.ui.actionPreferencias.triggered.connect(self.openSettings) # signal/slot connection
+
         self.ui.pushButton.released.connect(self.run) # signal/slot connection
         self.ui.treeView.doubleClicked.connect(self.openFromTree) # signal/slot connection
         self.ui.textEdit.textChanged.connect(self.setUnsaved) # signal/slot connection
         self.ui.textEdit.cursorPositionChanged.connect(self.onCursorPosition)
         self.ui.fontComboBox.editTextChanged.connect(self.changeFont)
 
+        self.settingsUi.btnPathPython.clicked.connect(lambda: self.setPath(self.settingsUi.txtPathPython))
+        self.settingsUi.btnPathIdle.clicked.connect(lambda: self.setPath(self.settingsUi.txtPathIdle))
+        self.settingsUi.btnPathDesigner.clicked.connect(lambda: self.setPath(self.settingsUi.txtPathDesigner))
+        self.settingsUi.btnPathBrowser.clicked.connect(lambda: self.setPath(self.settingsUi.txtPathBrowser))
+        self.settingsUi.btnPathGit.clicked.connect(lambda: self.setPath(self.settingsUi.txtPathGit))
+        self.settingsUi.accepted.connect(self.changeSettings)
+
         self.ui.textEdit.wheelEvent = MainWindow.wheelEvent.__get__(self, self.__class__)
         page = QtWebKit.QWebPage()
         page.javaScriptConsoleMessage = MainWindow.console.__get__(self, self.__class__)
         self.ui.webView.setPage(page)
 
-
 ##**********************************
+
+    def changeSettings(self):
+        self.settings.setValue('python_path', self.settingsUi.txtPathPython.text())
+        self.settings.setValue('idle_path', self.settingsUi.txtPathIdle.text())
+        self.settings.setValue('designer_path', self.settingsUi.txtPathDesigner.text())
+        self.settings.setValue('browser_path', self.settingsUi.txtPathBrowser.text())
+        self.settings.setValue('git_path', self.settingsUi.txtPathGit.text())
+
+        self.loadPaths()
+
+    def openSettings(self):
+        self.settingsUi.setModal(True)
+        self.settingsUi.txtPathPython.setText(self.pythonPath)
+        self.settingsUi.txtPathIdle.setText(self.idlePath)
+        self.settingsUi.txtPathDesigner.setText(self.designerPath)
+        self.settingsUi.txtPathBrowser.setText(self.browserPath)
+        self.settingsUi.txtPathGit.setText(self.gitPath)
+        self.settingsUi.show()
+
+    def setPath(self, txtFile):
+        path = QFileDialog.getOpenFileName()
+        if path != '':
+            txtFile.setText(path)
+
     def about(self):
         QMessageBox.about(self, "Acerca de MyEditor", "MyEditor\nDesarrollado por:\n Martín Nicolás Carbone\nAgosto 2014")
 
     def changeFont(self, font):
+        self.fontFamily = font
         self.font.setFamily(font)
         self.lexer.setFont(self.font)
+        self.settings.setValue('font_family',font)
 
     def findMatchingClosingTag(self, lineNumber, text, tagName, closingBracket=0, level=1):
         if lineNumber <= self.ui.textEdit.lines():
@@ -190,10 +258,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 ##        /* Find matching tag only if a tag is not self-closing */
         if(not self.is_tag_self_closing(lineText, closingBracketInLine)):
             self.findMatchingTag(lineNumber, lineText, openingBracketInLine, closingBracketInLine)
-##            print('line:',lineNumber, 'index:',index, 'pos:',position)
-##            print('lineText:',lineText)
-##            print('openingBracket:',openingBracket)
-##            print('closingBracket:',closingBracket)
 
 
     def highlight_tag(self, openingBracket, closingBracket):
@@ -334,6 +398,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
     def setSaved(self):
         title = self.fileName + ' - ' + self.uiTitle
         self.ui.setWindowTitle(title)
+        self.settings.setValue('file_open', self.fileName)
 
     def searchSelected(self):
 
@@ -366,10 +431,9 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
     def openGitGui(self):
         if self.lastDir!= '':
-            command = '"C:\\Archivos de programa\\Git\\bin\\wish.exe" "C:\\Archivos de programa\\Git\libexec\\git-core\\git-gui"'
+            command = self.gitPath# '"C:\\Archivos de programa\\Git\\bin\\wish.exe" "C:\\Archivos de programa\\Git\libexec\\git-core\\git-gui"'
             commandLine = 'cd "{0}" & {1}'.format(self.lastDir.replace('/', '\\'), command)
             p = subprocess.Popen(command,shell=True)
-            print(commandLine)
 
 
     def search(self):
@@ -405,7 +469,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             file.close()
             self.setSaved()
         except:
-            pass
+            QMessageBox.critical(self,"Error al abrir", "Error al abrir")
 
     def fileSave(self, fileName):
         try:
@@ -417,7 +481,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             file.close()
             self.setSaved()
         except:
-            pass
+            QMessageBox.critical(self,"Error al guardar", "Error al guardar")
 
 
     def open(self):
@@ -436,13 +500,15 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         else:
             fileName = self.fileName
         if fileName != '':
-            self.fileSave(self.fileName)
+            self.fileSave(fileName)
 
     def run(self):
 
         commands={
-            '.py':'python',
-            '.html':'"C:\\archivos de programa\\mozilla firefox\\firefox.exe"',
+            '.py':'"{0}" "{1}" -r "{2}"'.format(self.pythonPath, self.idlePath, '{0}'),
+#            '.py':'"{0}" "{2}"'.format(self.pythonPath, self.idlePath, '{0}'),
+            '.pyw':'"{0}" "{2}"'.format(self.pythonPath, self.idlePath, '{0}'),
+            '.html': '"{0}" "{1}"'.format(self.browserPath, '{0}'),
 #            '.cpp':Qsci.QsciLexerCPP,
 #            '.c':Qsci.QsciLexerCPP,
 #            '.css':Qsci.QsciLexerCSS,
@@ -452,43 +518,25 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 #            '.pas':Qsci.QsciLexerPascal,
 #            '.sql':Qsci.QsciLexerSQL,
 #            '.xml':Qsci.QsciLexerXML,
-            '.ui':'"D:\\Documents and Settings\\MCarbone\\Mis documentos\\new\\Portable Python 3.2.5.1\\QtDesigner-Portable.exe"'
+            '.ui': '"{0}" "{1}"'.format(self.designerPath, '{0}')
 #            '.cs':Qsci.QsciLexerCSharp,
 #            '.sh':Qsci.QsciLexerBash,
 #            '.bat':Qsci.QsciLexerBatch
 
         }
-        
         command = commands[self.ext]
         file = self.fileName.replace('/', '\\')
-        idlePath = "D:\\Documents and Settings\\MCarbone\\Mis documentos\\new\\Portable Python 3.2.5.1\\App\\Lib\\idlelib\\idle.py"
-##        file = 'otro.py'
-        
-
-        commandLine = '{0} "{2}" -r "{1}"'.format(command, file, idlePath)
-##        subprocess.Popen(['cmd', '/K', command+' '+file+''])
+        commandLine = command.format(file)
         p = subprocess.Popen(commandLine, shell=True)
-##        import code
-##        c = code.InteractiveConsole()
-##        c.write=lambda x:self.ui.textEdit.setText(x)
-##        s = """
-##print('eggs1')
-##print('eggs2')"""
-##
-##        
-##        s = self.ui.textEdit.text()
-####        print(s)
-##        c.runcode(s)#, filename='MIARCHIVO', symbol="single")
-##        c.showsyntaxerror()
-##        c.showtraceback()
 
 
     def changeLexer(self, ext='.py'):
-
         self.ext = ext
         lexs={
             '.py': Qsci.QsciLexerPython,
+            '.pyw': Qsci.QsciLexerPython,
             '.html': Qsci.QsciLexerHTML,
+            '.htm': Qsci.QsciLexerHTML,
             '.cpp': Qsci.QsciLexerCPP,
             '.c': Qsci.QsciLexerCPP,
             '.css': Qsci.QsciLexerCSS,
@@ -566,7 +614,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         # Create an API for us to populate with our autocomplete terms
         self.font = QFont()
-        self.font.setFamily('Monaco')
+        self.font.setFamily(self.fontFamily)
         self.font.setFixedPitch(True)
         self.font.setPointSize(10)
         self.ui.textEdit.setFont(self.font)

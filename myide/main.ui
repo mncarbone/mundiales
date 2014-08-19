@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
+    <width>948</width>
     <height>800</height>
    </rect>
   </property>
@@ -117,7 +117,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
+     <width>948</width>
      <height>23</height>
     </rect>
    </property>
@@ -148,6 +148,8 @@
     <addaction name="actionBuscar_Seleccionado"/>
     <addaction name="actionBuscar_siguiente"/>
     <addaction name="actionEjecutar"/>
+    <addaction name="separator"/>
+    <addaction name="actionPreferencias"/>
    </widget>
    <widget class="QMenu" name="menuVer">
     <property name="title">
@@ -508,6 +510,11 @@
    </property>
    <property name="text">
     <string>UTF-8/Latin1</string>
+   </property>
+  </action>
+  <action name="actionPreferencias">
+   <property name="text">
+    <string>Preferencias</string>
    </property>
   </action>
  </widget>
