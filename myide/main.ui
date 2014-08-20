@@ -163,6 +163,7 @@
     <addaction name="actionZoom_2"/>
     <addaction name="actionTipograf_a"/>
     <addaction name="actionUtf_8_latin1"/>
+    <addaction name="actionFin_de_lineas"/>
    </widget>
    <widget class="QMenu" name="menuAyuda">
     <property name="title">
@@ -517,6 +518,14 @@
     <string>Preferencias</string>
    </property>
   </action>
+  <action name="actionFin_de_lineas">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fin de lineas</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -761,6 +770,22 @@
    <signal>toggled(bool)</signal>
    <receiver>textEdit</receiver>
    <slot>setUtf8(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>395</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionFin_de_lineas</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>textEdit</receiver>
+   <slot>setEolVisibility(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>

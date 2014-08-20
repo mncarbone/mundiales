@@ -437,7 +437,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
 
     def search(self):
-
         self.ui.lineEdit.setText(self.ui.textEdit.selectedText())
 
 
@@ -619,6 +618,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.font.setPointSize(10)
         self.ui.textEdit.setFont(self.font)
         self.ui.textEdit.setMarginsFont(self.font)
+        self.ui.textEdit.setEolMode(Qsci.QsciScintilla.EolUnix)
 
         self.ui.textEdit.setAutoCompletionThreshold(1)
         ## Tell the editor we are using a QsciAPI for the autocompletion
