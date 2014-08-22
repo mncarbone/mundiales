@@ -61,7 +61,6 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.loadPaths()
 
 
-
     def loadPaths(self):
         if self.settings.value('python_path') is not None:
             self.pythonPath = self.settings.value('python_path')
@@ -79,19 +78,18 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
             self.gitPath = self.settings.value('git_path')
 
 
-    def wheelEvent(self, ev):
+    def scrollText(self, ev):
         try:
             # Use ctrl+wheel to zoom in/out
             if Qt.ControlModifier & ev.modifiers():
                 if ev.delta() > 0:
-                    self.ui.textEdit.zoomIn()
+                    return self.ui.textEdit.zoomIn()
                 else:
-                    self.ui.textEdit.zoomOut()
+                    return self.ui.textEdit.zoomOut()
             else:
                 return Qsci.QsciScintilla.wheelEvent(self.ui.textEdit,ev)
-##                self.ui.textEdit.wheelEventScroll(ev)
-        finally :
-            pass
+        except:
+            return False
 
     def console(self, msg, line, source):
         print ('%s line %d: %s' % (source, line, msg))
@@ -123,7 +121,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.settingsUi.btnPathGit.clicked.connect(lambda: self.setPath(self.settingsUi.txtPathGit))
         self.settingsUi.accepted.connect(self.changeSettings)
 
-        self.ui.textEdit.wheelEvent = MainWindow.wheelEvent.__get__(self, self.__class__)
+        self.ui.textEdit.wheelEvent = lambda e: self.scrollText(e) #MainWindow.wheelEvent.__get__(self, self.__class__)
         page = QtWebKit.QWebPage()
         page.javaScriptConsoleMessage = MainWindow.console.__get__(self, self.__class__)
         self.ui.webView.setPage(page)
