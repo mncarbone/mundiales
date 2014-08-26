@@ -21,7 +21,6 @@ from PyQt4 import Qsci, QtCore, QtGui, uic, QtWebKit
 
 #( Ui_MainWindow, QMainWindow ) = uic.loadUiType( 'ui/main.ui' )
 
-
 class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
 
@@ -32,6 +31,9 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
         self.ui = uic.loadUi(os.path.dirname(os.path.realpath(sys.argv[0]))+"/main.ui", self)
         self.settingsUi = uic.loadUi(os.path.dirname(os.path.realpath(sys.argv[0]))+"/config.ui")
+
+#        QtGui.QApplication.setStyle(QtGui.QStyleFactory.create("Cleanlooks"))
+#        QtGui.QApplication.setPalette(QtGui.QApplication.style().standardPalette())
 
         self.uiTitle = self.ui.windowTitle()
         self.fileName = file
@@ -107,6 +109,7 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
         self.ui.actionBuscar_Seleccionado.triggered.connect( self.searchSelected) # signal/slot connection
         self.ui.actionGit_Gui.triggered.connect( self.openGitGui) # signal/slot connection
         self.ui.actionPreferencias.triggered.connect(self.openSettings) # signal/slot connection
+        self.ui.actionComentar_Descomentar.triggered.connect(self.commentLine) # signal/slot connection
 
         self.ui.pushButton.released.connect(self.run) # signal/slot connection
         self.ui.treeView.doubleClicked.connect(self.openFromTree) # signal/slot connection
@@ -128,6 +131,24 @@ class MainWindow(QMainWindow):#1#, Ui_MainWindow):
 
 ##**********************************
 
+    def commentLine(self, doComment):
+        # as an example, get the current line
+        line, pos = self.ui.textEdit.getCursorPosition()
+        # get the text of the line
+        text = self.ui.textEdit.text(line)
+        #if is commented 
+        if text[0] == '#': #remove the '#'
+             text = text[1:]
+             pos -= 1
+        else:
+             text = '#' + text #prepend the '#'
+             pos += 1
+        # then select it
+        self.ui.textEdit.setSelection(line, 0, line, self.ui.textEdit.lineLength(line))
+        #replace it with the new text
+        self.ui.textEdit.replaceSelectedText(text)
+        self.ui.textEdit.setSelection(line, pos, line, pos)
+        
     def changeSettings(self):
         self.settings.setValue('python_path', self.settingsUi.txtPathPython.text())
         self.settings.setValue('idle_path', self.settingsUi.txtPathIdle.text())

@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>MyEditor</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>famfam/application_edit.png</normaloff>famfam/application_edit.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="margin">
@@ -144,9 +148,12 @@
     <addaction name="actionPegar"/>
     <addaction name="actionSeleccionar_Todo"/>
     <addaction name="separator"/>
+    <addaction name="actionComentar_Descomentar"/>
+    <addaction name="separator"/>
     <addaction name="actionBuscar"/>
     <addaction name="actionBuscar_Seleccionado"/>
     <addaction name="actionBuscar_siguiente"/>
+    <addaction name="separator"/>
     <addaction name="actionEjecutar"/>
     <addaction name="separator"/>
     <addaction name="actionPreferencias"/>
@@ -309,7 +316,7 @@
     <string>Salir</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Q</string>
+    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="actionAbrir">
@@ -524,6 +531,17 @@
    </property>
    <property name="text">
     <string>Fin de lineas</string>
+   </property>
+  </action>
+  <action name="actionComentar_Descomentar">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Comentar/Descomentar</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>
